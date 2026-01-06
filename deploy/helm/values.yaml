@@ -1,0 +1,153 @@
+replicaCount: 1
+
+image:
+  repository: ghcr.io/berriai/litellm-non_root
+  pullPolicy: IfNotPresent
+  tag: "main-latest"
+
+serviceAccount:
+  create: true
+
+service:
+  type: ClusterIP
+  port: 4000
+
+# OpenShift Route (set enabled: false for vanilla Kubernetes)
+route:
+  enabled: true
+  host: ""  # Leave empty for auto-generated hostname
+  tls:
+    termination: edge
+    insecureEdgeTerminationPolicy: Redirect
+
+# Kubernetes Ingress (alternative to Route)
+ingress:
+  enabled: false
+
+livenessProbe:
+  httpGet:
+    path: /health/liveliness
+    port: http
+  initialDelaySeconds: 30
+  periodSeconds: 10
+
+readinessProbe:
+  httpGet:
+    path: /health/readiness
+    port: http
+  initialDelaySeconds: 10
+  periodSeconds: 5
+
+autoscaling:
+  enabled: false
+
+# LiteLLM configuration
+litellm:
+  debug: true
+  masterKey: "master-key"       # Password for admin UI login (username is "admin")
+  requireApiKey: true           # Set false to disable proxy auth (adds --no-auth)
+  apiKey: "sk-1234567890"       # API key for programmatic access
+  salt: "sk-1234567890"         # Salt for hashing (required with database)
+  config:
+    model_list:
+      - model_name: llama3
+        litellm_params:
+          model: ollama/llama3
+          api_base: http://ollama:11434
+      
+      - model_name: llama-fp8
+        litellm_params:
+          model: openai/llama-fp8
+          api_base: http://llama-fp8-predictor.hacohen-llmlite.svc.cluster.local:8080/v1
+          api_key: "none"  # Add this - tells LiteLLM no auth needed for this backend
+          input_cost_per_token: 0.00001   # $0.01 per 1K input tokens
+          output_cost_per_token: 0.00002  # $0.02 per 1K output tokens
+
+    # Fallback routing: when llama-fp8 fails, route to llama3
+    router_settings:
+      fallbacks:
+        - "llama-fp8": ["llama3"]
+      num_retries: 0           # Don't retry, failover immediately
+      timeout: 30               # 30 second timeout
+      allowed_fails: 1
+      cooldown_time: 10
+
+# Streamlit UI (your custom UI app)
+ui:
+  enabled: true
+  replicaCount: 1
+  image:
+    repository: quay.io/rh-ai-quickstart/litellm-streamlit-ui
+    pullPolicy: Always
+    tag: "latest"
+  # OpenShift BuildConfig (set enabled: false to use pre-built images)
+  build:
+    enabled: false              # Set to true to create BuildConfig/ImageStream
+    dockerfilePath: Containerfile  # Use "Dockerfile" or "Containerfile"
+  username: "admin"             # UI login username
+  password: "admin"             # UI login password
+  livenessProbe:
+    httpGet:
+      path: /_stcore/health
+      port: http
+    initialDelaySeconds: 15
+    periodSeconds: 10
+  readinessProbe:
+    httpGet:
+      path: /_stcore/health
+      port: http
+    initialDelaySeconds: 5
+    periodSeconds: 5
+  service:
+    type: ClusterIP
+    port: 8501
+  route:
+    enabled: true
+    host: ""
+    tls:
+      termination: edge
+      insecureEdgeTerminationPolicy: Redirect
+  ingress:
+    enabled: false
+  resources:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 250m
+      memory: 256Mi
+
+# Seed data configuration
+# Creates initial teams and users after LiteLLM is deployed
+seed:
+  enabled: true
+  teams:
+    - team_alias: engineering
+      max_budget: 100.0
+    - team_alias: marketing
+      max_budget: 50.0
+  users:
+    - user_email: eng-user@example.com
+      team_alias: engineering
+    - user_email: mkt-user@example.com
+      team_alias: marketing
+
+# PostgreSQL database (pgvector subchart)
+# Required for: virtual keys, teams, users, budgets, spend tracking
+# Set enabled: false to run LiteLLM in stateless mode
+pgvector:
+  enabled: true
+  secret:
+    user: postgres
+    password: litellm_password  # Change in production!
+    dbname: litellm
+    host: pgvector
+    port: "5432"
+  volumeClaimTemplates:
+    - metadata:
+        name: pg-data
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 5Gi
