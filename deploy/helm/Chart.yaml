@@ -12,11 +12,17 @@ keywords:
   - streamlit
   - postgresql
   - pgvector
+  - llama-stack
 maintainers:
   - name: LiteLLM Team
 
 dependencies:
   - name: pgvector
-    version: "0.5.2"
-    repository: "file://charts/pgvector"
+    version: 0.5.2
+    repository: https://rh-ai-quickstart.github.io/ai-architecture-charts
     condition: pgvector.enabled
+
+  - name: llama-stack
+    version: 0.6.4
+    repository: https://rh-ai-quickstart.github.io/ai-architecture-charts
+    condition: llama-stack.enabled

@@ -1,6 +1,12 @@
 import streamlit as st
 import requests
 import os
+from llama_stack_client import LlamaStackClient
+
+client = LlamaStackClient(
+    base_url="http://llamastack:8321",
+    api_key="master-key"
+)
 
 # Page configuration
 st.set_page_config(
@@ -27,8 +33,8 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # Get LiteLLM URL from environment variable, secrets, or default
-LITELLM_URL = os.getenv("LITELLM_URL", "https://litellm-litellm.apps.ai-dev02.kni.syseng.devcluster.openshift.com")
-LITELLM_API_KEY = os.getenv("LITELLM_API_KEY", "sk-sbcz9xCaIOrKkYq9jAUEOA")
+LITELLM_URL = os.getenv("LITELLM_URL", "http://llamastack:8321")
+LITELLM_API_KEY = os.getenv("LITELLM_API_KEY", "master-key")
 
 print(f"LITELLM_URL: {LITELLM_URL}")
 print(f"LITELLM_API_KEY: {LITELLM_API_KEY}")

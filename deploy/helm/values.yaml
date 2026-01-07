@@ -137,7 +137,7 @@ seed:
     # - user_email: mkt-user@example.com
     #   team_alias: marketing
 
-# PostgreSQL database (pgvector subchart)
+# PostgreSQL database (pgvector subchart from ai-architecture-charts)
 # Required for: virtual keys, teams, users, budgets, spend tracking
 # Set enabled: false to run LiteLLM in stateless mode
 pgvector:
@@ -156,3 +156,27 @@ pgvector:
         resources:
           requests:
             storage: 5Gi
+
+# Llama Stack (llama-stack subchart from ai-architecture-charts)
+# AI framework for building agentic applications
+# See: https://github.com/rh-ai-quickstart/ai-architecture-charts/tree/main/llama-stack
+llama-stack:
+  enabled: true
+  image:
+    repository: llamastack/distribution-starter
+    pullPolicy: IfNotPresent
+    tag: "0.3.3"
+  secrets:
+    TAVILY_SEARCH_API_KEY: "Paste-your-key-here"
+  # PGVector integration for vector database
+  pgvector:
+    enabled: true
+  # Model configuration
+  # See format in https://github.com/rh-ai-quickstart/ai-architecture-charts/blob/main/llama-stack/helm/values.yaml
+  # Example models configuration:
+  models:
+    remote-llm:
+      id: llama-4-scout-17b-16e-w4a16
+      url: https://llama-4-scout-17b-16e-w4a16-maas-apicast-production.apps.prod.rhoai.rh-aiservices-bu.com:443/v1
+      apiToken: d0b59e042869ac45901ea100d168efd6
+      enabled: true
