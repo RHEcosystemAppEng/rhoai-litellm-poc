@@ -6,7 +6,7 @@ This repository explores how LiteLLM integrates with LlamaStack in the context o
 
 ## Definitions
 
-### LiteLLM
+## LiteLLM
 [LiteLLM Official Documentation](https://docs.litellm.ai/docs/)
 
 > [!NOTE]
@@ -14,7 +14,7 @@ This repository explores how LiteLLM integrates with LlamaStack in the context o
 
 **LiteLLM** is an open-source platform that provides a unified interface to manage and access over 100 LLMs from various providers ([Arize](https://arize.com/docs/phoenix/integrations/llm-providers/litellm)). It focuses primarily on model access and API translation.
 
-### LlamaStack
+## LlamaStack
 [LlamaStack Official Documentation](https://llamastack.github.io/docs)
 
 > [!NOTE]
@@ -27,7 +27,7 @@ This repository explores how LiteLLM integrates with LlamaStack in the context o
 
 **LlamaStack** is an open-source framework for building generative AI applications with unified APIs for Inference, RAG, Agents, Tools, Safety, and Telemetry ([LlamaStack](https://llamastack.github.io)). It's a comprehensive application framework.
 
-### Similarities
+## Similarities
 
 Both tools aim to simplify working with large language models by providing abstraction layers, though they approach this goal differently:
 - **Unified interfaces**: Both provide standardized APIs to work with multiple LLM providers, reducing the need to learn different provider-specific APIs
@@ -35,13 +35,13 @@ Both tools aim to simplify working with large language models by providing abstr
 - **Developer-friendly**: Both are open-source projects designed to streamline LLM application development
 - **Python ecosystem**: Both offer Python SDKs as a core part of their offerings
 
-## LiteLLM with LlamaStack
+# LiteLLM with LlamaStack
 
 Based on our analysis of both LlamaStack and LiteLLM, it's clear that there are areas where these two technologies overlap—especially in providing a unified interface to various large language model (LLM) providers. However, each solution brings a unique set of features and strengths to the table. LlamaStack shines as a comprehensive framework for building advanced generative AI applications, offering capabilities like RAG, safety guardrails, memory management, and agentic systems. LiteLLM, on the other hand, excels as a lightweight gateway for accessing and managing a wide variety of LLM APIs, with strong features around cost tracking, rate limiting, key management, and operational controls.
 
 By integrating LiteLLM with LlamaStack, you get the best of both worlds: the advanced application-building tools and unified APIs of LlamaStack, combined with LiteLLM's operational advantages such as easy model swapping, API translation, and enterprise-grade management features. Rather than competing, these tools complement each other—helping you build, deploy, and manage AI-powered applications more efficiently and securely. This integration can be especially valuable in enterprise and production environments where flexibility, scalability, and control are critical.
 
-### LiteLLM's Value Add
+## LiteLLM's Value Add
 
 What does LiteLLM provide that LlamaStack cannot? When configured correctly, LiteLLM can provide many features required for enterprise and robust applications:
 
@@ -66,7 +66,7 @@ What does LiteLLM provide that LlamaStack cannot? When configured correctly, Lit
 | Multi-turn Conversations | ✗ | ✓ |
 | Mobile SDK Support | ✗ | ✓ |
 
-### Architecture
+## Architecture
 
 This lays out the possible configuration when using LlamaStack and LiteLLM together. 
 
@@ -153,11 +153,11 @@ flowchart TB
     classDef control fill:#E8F5E9,stroke:#2E7D32,stroke-width:1px
 ```
 
-## Demos
+# Demos
 
 By using the configuration above, you can leverage the tools of both technologies to get an enterprise-level experience. We have proven this works using a few demos—please navigate to the `/demos` folder and see them in action. All demos are deployable to Red Hat's OpenShift environment.
 
-### Serving Models
+## Serving Models
 
 To run LiteLLM with LlamaStack in this configuration, you must have some type of LLM serving or hosted provider available in order to run inference. To serve an LLM using Red Hat OpenShift AI, follow the tutorial [here](docs/RHOAI_model_serving.md). If you are not serving your own model, you can use one of many providers like Anthropic, OpenAI, and Google, or run Ollama.
 
@@ -181,7 +181,44 @@ You can use the [UI app](apps/ui/README.md) to interface with he liteLLM directl
 ### LlamaStack Integration
 [LlamaStack Integration Demo](demos/llamastack_test.py)
 
-## Conclusion
+# Chat Interface
+
+Along with demos we provide a way to interface with the LiteLLM gateway using steamlit. The purpose of this application is to allow users to create and update the liteLLM configurations in the LiteLLM UI and see the reflections in the chat interface.
+
+### What does the Chat Interface Demo
+
+The demo project deploys the following:
+1) LiteLLM API - The API that powers the chat applications (inference, budgeting, and rate limiting)
+2) LiteLLM Admin UI - UI that acts as the way to configure LiteLLM and manage its components
+3) Postgres - Databases storage used to run LiteLLM
+4) LlamaStack - Unified AI API (Agents, RAG, Knowledge...)
+
+Along with the helm deployment there is a job that loads some sample data into LiteLLM. The file `deploy/helm/templates/seed-job.yaml` this lays out the job to load the LiteLLM Users and Teams for the demo.
+
+The data for the values is found in values.yaml file:
+
+```yaml
+seed:
+  enabled: true
+  teams:
+    - team_alias: engineering
+      max_budget: 100.0
+    - team_alias: marketing
+      max_budget: 50.0
+  users:
+    - user_email: eng-user@example.com
+      team_alias: engineering
+    - user_email: mkt-user@example.com
+      team_alias: marketing
+```
+
+This creates Two Team and Two Uses with two separate team budgets. 
+
+> [!NOTE]
+> See [LiteLLM Overview](/litellm_overview.md) for more information on running and configuring the demo application.
+
+
+# Conclusion
 
 LiteLLM and LlamaStack are complementary technologies that, when combined, provide a robust foundation for building enterprise-grade AI applications. LlamaStack delivers the application-building capabilities—RAG, agents, safety guardrails, and tool execution—while LiteLLM adds the operational controls necessary for production environments, including rate limiting, cost tracking, load balancing, and API key management.
 
