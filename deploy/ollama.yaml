@@ -50,7 +50,7 @@ spec:
               command:
               - /bin/sh
               - -c
-              - "sleep 15 && ollama pull llama3"
+              - "sleep 5 && ollama pull llama3 && ollama pull llama-guard3:8b"
       volumes:
       - name: ollama-data
         emptyDir: {}
