@@ -132,10 +132,10 @@ seed:
     - team_alias: marketing
       max_budget: 50.0
   users:
-    - user_email: eng-user@example.com
-      team_alias: engineering
-    - user_email: mkt-user@example.com
-      team_alias: marketing
+    # - user_email: eng-user@example.com
+    #   team_alias: engineering
+    # - user_email: mkt-user@example.com
+    #   team_alias: marketing
 
 # PostgreSQL database (pgvector subchart)
 # Required for: virtual keys, teams, users, budgets, spend tracking
