@@ -63,6 +63,11 @@ litellm:
           input_cost_per_token: 0.00001   # $0.01 per 1K input tokens
           output_cost_per_token: 0.00002  # $0.02 per 1K output tokens
 
+      - model_name: llama-guard3
+        litellm_params:
+          model: ollama/llama-guard3:8b
+          api_base: http://ollama:11434
+
     # Fallback routing: when llama-fp8 fails, route to llama3
     router_settings:
       fallbacks:
