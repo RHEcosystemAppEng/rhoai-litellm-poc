@@ -168,12 +168,8 @@ llama-stack:
     tag: "0.3.3"
   secrets:
     TAVILY_SEARCH_API_KEY: "Paste-your-key-here"
-  # PGVector integration for vector database
   pgvector:
     enabled: true
-  # Model configuration
-  # See format in https://github.com/rh-ai-quickstart/ai-architecture-charts/blob/main/llama-stack/helm/values.yaml
-  # Example models configuration:
   models:
     remote-llm:
       id: llama-4-scout-17b-16e-w4a16
