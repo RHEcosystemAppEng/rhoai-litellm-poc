@@ -1,0 +1,61 @@
+{{- if .Values.seed.enabled }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "litellm.fullname" . }}-seed
+  labels:
+    {{- include "litellm.labels" . | nindent 4 }}
+    app.kubernetes.io/component: seed
+  annotations:
+    "helm.sh/hook": post-install,post-upgrade
+    "helm.sh/hook-weight": "0"
+spec:
+  backoffLimit: 3
+  ttlSecondsAfterFinished: 300
+  template:
+    metadata:
+      labels:
+        {{- include "litellm.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: seed
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "litellm.serviceAccountName" . }}
+      restartPolicy: OnFailure
+      containers:
+      - name: seed
+        image: curlimages/curl:8.5.0
+        command:
+        - /bin/sh
+        - /scripts/seed.sh
+        env:
+        - name: LITELLM_MASTER_KEY
+          value: {{ .Values.litellm.masterKey | quote }}
+        volumeMounts:
+        - name: seed-script
+          mountPath: /scripts
+          readOnly: true
+        resources:
+          limits:
+            cpu: 100m
+            memory: 64Mi
+          requests:
+            cpu: 50m
+            memory: 32Mi
+      volumes:
+      - name: seed-script
+        configMap:
+          name: {{ include "litellm.fullname" . }}-seed
+          defaultMode: 0755
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+{{- end }}
+
