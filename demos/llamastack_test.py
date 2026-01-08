@@ -1,6 +1,6 @@
 from llama_stack_client import LlamaStackClient
 
-LLAMASTACK_URL = "http://localhost:8321"
+LLAMASTACK_URL = "https://llamastack-hacohen-llmlite.apps.ai-dev02.kni.syseng.devcluster.openshift.com"
 LITELLM_URL = "https://litellm-hacohen-llmlite.apps.ai-dev02.kni.syseng.devcluster.openshift.com"
 
 # Client with LiteLLM as backend
