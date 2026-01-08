@@ -1,0 +1,59 @@
+name: Build and Push UI Image
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'apps/ui/**'
+  pull_request:
+    paths:
+      - 'apps/ui/**'
+
+env:
+  IMAGE_REGISTRY: quay.io
+  IMAGE_NAMESPACE: rh-ai-quickstart
+  IMAGE_NAME: litellm-streamlit-ui
+  IMAGE_TAG: latest
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Quay.io
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.IMAGE_REGISTRY }}
+          username: ${{ secrets.QUAY_USERNAME }}
+          password: ${{ secrets.QUAY_PASSWORD }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.IMAGE_REGISTRY }}/${{ env.IMAGE_NAMESPACE }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=raw,value=${{ env.IMAGE_TAG }}
+            type=sha,prefix={{branch}}-
+
+      - name: Build and push image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./apps/ui
+          file: ./apps/ui/Containerfile
+          push: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          platforms: linux/amd64,linux/arm64
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Image digest
+        run: echo "Image pushed with digest ${{ steps.build.outputs.digest }}"
