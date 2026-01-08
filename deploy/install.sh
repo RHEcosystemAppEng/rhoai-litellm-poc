@@ -43,8 +43,10 @@ echo "[3/3] Deploying LiteLLM with Helm..."
 helm upgrade --install "${RELEASE_NAME}" "${HELM_CHART}" \
     --namespace "${NAMESPACE}" \
     --set ui.enabled=true \
-    --set ui.image.repository=quay.io/rh-ai-quickstart/litellm-streamlit-ui \
+    --set ui.image.repository=quay.io/ecosystem-appeng/litellm-streamlit-ui \
     --set ui.image.tag=latest \
+    --set ui.image.pullPolicy=Always \
+    --force \
     --wait
 
 echo ""

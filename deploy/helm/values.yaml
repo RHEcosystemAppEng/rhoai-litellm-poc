@@ -82,7 +82,7 @@ ui:
   enabled: true
   replicaCount: 1
   image:
-    repository: quay.io/rh-ai-quickstart/litellm-streamlit-ui
+    repository: quay.io/ecosystem-appeng/litellm-streamlit-ui
     pullPolicy: Always
     tag: "latest"
   # OpenShift BuildConfig (set enabled: false to use pre-built images)
