@@ -1,22 +1,15 @@
-import streamlit as st
-import requests
 import os
+import traceback
+
+import streamlit as st
 from llama_stack_client import LlamaStackClient
 
-client = LlamaStackClient(
-    base_url="http://llamastack:8321",
-    api_key="master-key"
-)
-
 # Page configuration
-st.set_page_config(
-    page_title="LiteLLM Chat",
-    page_icon="💬",
-    layout="wide"
-)
+st.set_page_config(page_title="LlamaStack Chat", page_icon="💬", layout="wide")
 
 # Custom CSS for better chat appearance
-st.markdown("""
+st.markdown(
+    """
 <style>
     .stChatMessage {
         padding: 1rem;
@@ -30,99 +23,188 @@ st.markdown("""
         padding-top: 1rem;
     }
 </style>
-""", unsafe_allow_html=True)
+""",
+    unsafe_allow_html=True,
+)
 
-# Get LiteLLM URL from environment variable, secrets, or default
-LITELLM_URL = os.getenv("LITELLM_URL", "http://llamastack:8321")
-LITELLM_API_KEY = os.getenv("LITELLM_API_KEY", "master-key")
+# Get LlamaStack URL from environment variable or default
+LLAMASTACK_URL = os.getenv(
+    "LLAMASTACK_URL",
+    "http://llamastack-hacohen-llmlite.apps.ai-dev02.kni.syseng.devcluster.openshift.com",
+)
 
-print(f"LITELLM_URL: {LITELLM_URL}")
-print(f"LITELLM_API_KEY: {LITELLM_API_KEY}")
+print(f"LLAMASTACK_URL: {LLAMASTACK_URL}")
 
 # Initialize session state
 if "messages" not in st.session_state:
     st.session_state.messages = []
 if "models" not in st.session_state:
     st.session_state.models = []
+if "client" not in st.session_state:
+    st.session_state.client = None
 
 
-def fetch_models(endpoint: str, api_key: str) -> list:
-    """Fetch available models from LiteLLM."""
+def get_client(endpoint: str) -> LlamaStackClient:
+    """Get or create LlamaStack client."""
     try:
-        headers = {"Authorization": f"Bearer {api_key}"} if api_key else {}
-        res = requests.get(f"{endpoint.rstrip('/')}/models", headers=headers, timeout=10)
-        res.raise_for_status()
-        return res.json().get("data", [])
+        return LlamaStackClient(base_url=endpoint)
+    except Exception as e:
+        st.error(f"Error creating client: {e}")
+        return None
+
+
+def fetch_models(client: LlamaStackClient) -> list:
+    """Fetch available models from LlamaStack."""
+    try:
+        # LlamaStack API returns models directly
+        models_response = client.models.list()
+
+        # Handle different response formats
+        if isinstance(models_response, list):
+            return models_response
+        elif hasattr(models_response, "__iter__"):
+            # Convert iterator to list
+            return list(models_response)
+        else:
+            st.warning(f"Unexpected models response type: {type(models_response)}")
+            return []
     except Exception as e:
         st.error(f"Error fetching models: {e}")
+        st.code(traceback.format_exc())
         return []
 
 
-def send_chat_message(endpoint: str, api_key: str, model: str, messages: list) -> str:
-    """Send a chat message to LiteLLM and return the response."""
+def send_chat_message(client: LlamaStackClient, model: str, messages: list) -> str:
+    """Send a chat message to LlamaStack and return the response."""
     try:
-        headers = {
-            "Content-Type": "application/json",
-        }
-        if api_key:
-            headers["Authorization"] = f"Bearer {api_key}"
-        
-        payload = {
-            "model": model,
-            "messages": messages,
-        }
-        
-        res = requests.post(
-            f"{endpoint.rstrip('/')}/chat/completions",
-            headers=headers,
-            json=payload,
-            timeout=120
+        response = client.chat.completions.create(
+            model=model,
+            messages=messages,
         )
-        res.raise_for_status()
-        
-        response_data = res.json()
-        return response_data["choices"][0]["message"]["content"]
-    except requests.exceptions.Timeout:
-        return "⚠️ Request timed out. The model may be slow or unavailable."
-    except requests.exceptions.RequestException as e:
+
+        # Handle different response formats from LlamaStack
+        if response is None:
+            return "⚠️ API returned None response"
+
+        # LlamaStack returns data in a 'data' array for list responses
+        if hasattr(response, "data") and response.data:
+            # Find the completion that matches our current request
+            # LlamaStack returns all historical completions, we need the one for THIS model and message
+            current_message = messages[-1]["content"]  # The user's latest message
+
+            for completion in response.data:
+                if isinstance(completion, dict):
+                    # Check if this completion is for our current model and message
+                    completion_model = completion.get("model", "")
+                    input_msgs = completion.get("input_messages", [])
+
+                    # Match by model and that it contains our current message
+                    if completion_model == model:
+                        # Check if this completion was for our message
+                        if input_msgs and len(input_msgs) > 0:
+                            last_input = input_msgs[-1].get("content", "")
+                            if last_input == current_message:
+                                # This is our completion!
+                                choices = completion.get("choices", [])
+                                if choices and len(choices) > 0:
+                                    message = choices[0].get("message", {})
+                                    content = message.get("content", "")
+                                    return content
+
+            # Fallback: if no exact match, use the first completion with matching model
+            for completion in response.data:
+                if isinstance(completion, dict):
+                    if completion.get("model", "") == model:
+                        choices = completion.get("choices", [])
+                        if choices and len(choices) > 0:
+                            message = choices[0].get("message", {})
+                            content = message.get("content", "")
+                            return content
+
+            return f"⚠️ No completion found for model: {model}"
+
+        # Try standard OpenAI format (choices directly on response)
+        if hasattr(response, "choices") and response.choices:
+            return response.choices[0].message.content
+
+        return f"⚠️ Unknown response format. Type: {type(response)}"
+
+    except Exception as e:
+        error_details = traceback.format_exc()
+        st.error(f"Chat error:\n```\n{error_details}\n```")
         return f"⚠️ Error: {str(e)}"
-    except (KeyError, IndexError) as e:
-        return f"⚠️ Unexpected response format: {str(e)}"
 
 
 # Sidebar configuration
 st.sidebar.header("⚙️ Configuration")
 
-litellm_url = st.sidebar.text_input(
-    "LiteLLM URL",
-    value=LITELLM_URL,
-    help="The URL of your LiteLLM proxy server"
+llamastack_url = st.sidebar.text_input(
+    "LlamaStack URL", value=LLAMASTACK_URL, help="The URL of your LlamaStack server"
 )
 
-api_key = st.sidebar.text_input(
-    "API Key",
-    value=LITELLM_API_KEY,
-    type="password",
-    help="Your LiteLLM API key for authentication"
-)
+# Create or update client
+if st.session_state.client is None or st.sidebar.button("🔄 Reconnect"):
+    with st.sidebar:
+        with st.spinner("Connecting..."):
+            st.session_state.client = get_client(llamastack_url)
+            if st.session_state.client:
+                st.success("✅ Connected to LlamaStack")
+                # Try to fetch models immediately to verify connection
+                test_models = fetch_models(st.session_state.client)
+                if test_models:
+                    st.session_state.models = test_models
+                    st.info(f"Auto-loaded {len(test_models)} models")
+                else:
+                    st.warning("⚠️ Connected but couldn't fetch models. Try 'Refresh Models'.")
 
 # Fetch models button
 if st.sidebar.button("🔄 Refresh Models"):
-    st.session_state.models = fetch_models(litellm_url, api_key)
+    if st.session_state.client:
+        st.session_state.models = fetch_models(st.session_state.client)
+        if st.session_state.models:
+            st.sidebar.success(f"✅ Loaded {len(st.session_state.models)} models")
+    else:
+        st.sidebar.error("❌ Not connected. Click 'Reconnect' first.")
 
 # Model selection
 if st.session_state.models:
-    model_names = [m.get("id", "unknown") for m in st.session_state.models]
-    selected_model = st.sidebar.selectbox(
-        "Select Model",
-        options=model_names,
-        help="Choose which model to chat with"
-    )
+    # Extract model identifiers
+    model_names = []
+    for m in st.session_state.models:
+        if hasattr(m, "identifier"):
+            model_names.append(m.identifier)
+        elif hasattr(m, "id"):
+            model_names.append(m.id)
+        elif isinstance(m, dict):
+            model_names.append(m.get("identifier") or m.get("id", "unknown"))
+        else:
+            model_names.append(str(m))
+
+    # Filter out safety/guard models and embedding models from chat selection
+    chat_models = [
+        name
+        for name in model_names
+        if "guard" not in name.lower()
+        and "embedding" not in name.lower()
+        and "sentence-transformers" not in name.lower()
+    ]
+
+    if chat_models:
+        selected_model = st.sidebar.selectbox(
+            "Select Model",
+            options=chat_models,
+            help="Choose which model to chat with (safety models filtered out)",
+        )
+    else:
+        st.sidebar.warning("⚠️ No chat models available. Safety and embedding models are hidden.")
+        selected_model = st.sidebar.text_input(
+            "Model Name", value="litellm-provider/llama3", help="Enter model name manually"
+        )
 else:
     selected_model = st.sidebar.text_input(
         "Model Name",
-        value="llama3",
-        help="Enter model name manually or click 'Refresh Models'"
+        value="litellm-provider/llama3",
+        help="Enter model name (format: provider_id/model_name) or click 'Refresh Models'",
     )
 
 # Clear chat button
@@ -135,10 +217,21 @@ st.sidebar.markdown("---")
 st.sidebar.markdown("### 📊 Session Info")
 st.sidebar.markdown(f"**Messages:** {len(st.session_state.messages)}")
 st.sidebar.markdown(f"**Model:** {selected_model}")
+st.sidebar.markdown(f"**Available Models:** {len(st.session_state.models)}")
+st.sidebar.markdown(f"**Connected:** {'✅ Yes' if st.session_state.client else '❌ No'}")
+
+# Debug info
+with st.sidebar.expander("🔍 Debug Info"):
+    st.code(f"URL: {llamastack_url}")
+    st.code(
+        f"Client: {type(st.session_state.client).__name__ if st.session_state.client else 'None'}"
+    )
+    if st.session_state.models:
+        st.code(f"First model: {st.session_state.models[0]}")
 
 # Main chat interface
-st.title("💬 LiteLLM Chat")
-st.markdown("Chat with your LLM models through LiteLLM proxy.")
+st.title("💬 LlamaStack Chat")
+st.markdown("Chat with your LLM models through LlamaStack server (powered by LiteLLM).")
 
 # Display chat messages
 for message in st.session_state.messages:
@@ -147,38 +240,52 @@ for message in st.session_state.messages:
 
 # Chat input
 if prompt := st.chat_input("Type your message here..."):
-    # Add user message to history
-    st.session_state.messages.append({"role": "user", "content": prompt})
-    
-    # Display user message
-    with st.chat_message("user"):
-        st.markdown(prompt)
-    
-    # Get assistant response
-    with st.chat_message("assistant"):
-        with st.spinner("Thinking..."):
-            # Prepare messages for API (include conversation history)
-            api_messages = [
-                {"role": m["role"], "content": m["content"]}
-                for m in st.session_state.messages
-            ]
-            
-            response = send_chat_message(
-                litellm_url,
-                api_key,
-                selected_model,
-                api_messages
-            )
-            st.markdown(response)
-    
-    # Add assistant response to history
-    st.session_state.messages.append({"role": "assistant", "content": response})
+    if not st.session_state.client:
+        st.error(
+            "❌ Not connected to LlamaStack. Please check configuration and click 'Reconnect'."
+        )
+    else:
+        # Add user message to history
+        st.session_state.messages.append({"role": "user", "content": prompt})
+
+        # Display user message
+        with st.chat_message("user"):
+            st.markdown(prompt)
+
+        # Get assistant response
+        with st.chat_message("assistant"):
+            with st.spinner("Thinking..."):
+                # Prepare messages for API (include conversation history)
+                api_messages = [
+                    {"role": m["role"], "content": m["content"]} for m in st.session_state.messages
+                ]
+
+                response = send_chat_message(st.session_state.client, selected_model, api_messages)
+                st.markdown(response)
+
+        # Add assistant response to history
+        st.session_state.messages.append({"role": "assistant", "content": response})
 
 # Show helpful info if no messages yet
 if not st.session_state.messages:
     st.info("""
-    👋 **Welcome!** To get started:
-    1. Configure your LiteLLM URL and API key in the sidebar
-    2. Click **Refresh Models** to load available models
-    3. Select a model and start chatting!
+    👋 **Welcome to LlamaStack Chat!** To get started:
+    1. The app connects to LlamaStack server (default: http://llamastack-hacohen-llmlite.apps.ai-dev02.kni.syseng.devcluster.openshift.com)
+    2. Click **🔄 Refresh Models** to load available models
+    3. Select a model from the dropdown (e.g., `litellm-provider/llama3`)
+    4. Start chatting!
+
+    **Note:** LlamaStack uses LiteLLM as the inference backend, giving you access to all configured models.
     """)
+
+    # Show architecture info
+    with st.expander("📐 Architecture"):
+        st.markdown("""
+        ```
+        Streamlit UI → LlamaStack Server → LiteLLM Proxy → Ollama/RHOAI
+        ```
+
+        **Available models:**
+        - `litellm-provider/llama3` - Via Ollama
+        - `litellm-provider/llama-fp8` - Via OpenShift AI    
+        """)
