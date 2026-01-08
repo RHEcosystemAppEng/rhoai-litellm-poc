@@ -100,7 +100,7 @@ curl https://$LITELLM_URL/health
 |-----------|-------------|---------|
 | `ui.enabled` | Enable UI deployment | `true` |
 | `ui.replicaCount` | Number of UI replicas | `1` |
-| `ui.image.repository` | UI image repository | `quay.io/rh-ai-quickstart/litellm-streamlit-ui` |
+| `ui.image.repository` | UI image repository | `quay.io/ecosystem-appeng/litellm-streamlit-ui` |
 | `ui.image.tag` | UI image tag | `latest` |
 | `ui.service.port` | UI service port | `8501` |
 | `ui.route.enabled` | Enable OpenShift Route for UI | `true` |

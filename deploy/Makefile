@@ -3,7 +3,7 @@
 # Variables
 NAMESPACE ?= litellm
 RELEASE_NAME ?= litellm
-UI_IMAGE_REPO ?= quay.io/rh-ai-quickstart/litellm-streamlit-ui
+UI_IMAGE_REPO ?= quay.io/ecosystem-appeng/litellm-streamlit-ui
 UI_IMAGE_TAG ?= latest
 HELM_CHART ?= ./helm
 UI_SOURCE_DIR ?= ../apps/ui
@@ -77,7 +77,7 @@ ifeq ($(USE_OPENSHIFT),true)
 	@helm upgrade --install $(RELEASE_NAME) $(HELM_CHART) \
 		--namespace $(NAMESPACE) \
 		--set ui.enabled=true \
-		--set ui.image.repository=quay.io/rh-ai-quickstart/litellm-streamlit-ui \
+		--set ui.image.repository=quay.io/ecosystem-appeng/litellm-streamlit-ui \
 		--set ui.image.tag=$(UI_IMAGE_TAG) \
 		--wait
 else

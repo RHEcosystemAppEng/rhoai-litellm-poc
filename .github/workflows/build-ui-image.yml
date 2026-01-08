@@ -12,7 +12,7 @@ on:
 
 env:
   IMAGE_REGISTRY: quay.io
-  IMAGE_NAMESPACE: rh-ai-quickstart
+  IMAGE_NAMESPACE: ecosystem-appeng
   IMAGE_NAME: litellm-streamlit-ui
   IMAGE_TAG: latest
 
