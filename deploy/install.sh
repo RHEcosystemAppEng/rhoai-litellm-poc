@@ -45,6 +45,8 @@ helm upgrade --install "${RELEASE_NAME}" "${HELM_CHART}" \
     --set ui.enabled=true \
     --set ui.image.repository=quay.io/rh-ai-quickstart/litellm-streamlit-ui \
     --set ui.image.tag=latest \
+    --set ui.image.pullPolicy=Always \
+    --force \
     --wait
 
 echo ""
