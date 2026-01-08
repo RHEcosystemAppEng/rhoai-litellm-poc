@@ -28,7 +28,7 @@ response = lite_client.chat.completions.create(
     ]
 )
 
-print("\nResponse:", response.choices[0].message.content)
+print("\nResponse:", response.choices[0].message.content, "\n")
 
 # 1. List available models (Proves LiteLLM is forwarding the model list)
 models = llama_stack_client.models.list()
@@ -38,7 +38,7 @@ print("Total Available Models:", len(models))
 
 # 2. Run an Inference Call
 response = llama_stack_client.chat.completions.create(
-    model="llama3/llama3", #"llama-fp8/llama-fp8", # LiteLLM maps this to your local Llama 3
+    model="litellm-provider/llama3", #"llama-fp8/llama-fp8", # LiteLLM maps this to your local Llama 3
     messages=[
         {"role": "user", "content": "Hello! Are you compatible with Llama Stack?"}
     ]
