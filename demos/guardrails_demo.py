@@ -10,7 +10,6 @@ Both use LlamaGuard 3 (8B model) for AI-based content moderation.
 """
 
 import os
-import sys
 import asyncio
 import litellm
 from llama_stack_client import LlamaStackClient
@@ -18,7 +17,7 @@ from llama_stack_client import LlamaStackClient
 # Configuration
 LITELLM_BASE_URL = os.getenv("LITELLM_BASE_URL", "https://litellm-hacohen-llmlite.apps.ai-dev02.kni.syseng.devcluster.openshift.com")
 LITELLM_API_KEY = os.getenv("LITELLM_API_KEY", "master-key")
-LLAMASTACK_BASE_URL = os.getenv("LLAMASTACK_BASE_URL", LITELLM_BASE_URL)
+LLAMASTACK_BASE_URL = os.getenv("LLAMASTACK_BASE_URL", "https://llamastack-hacohen-llmlite.apps.ai-dev02.kni.syseng.devcluster.openshift.com")
 
 # Test cases covering different safety categories
 TEST_CASES = [
@@ -153,7 +152,7 @@ def test_litellm_approach():
                 max_tokens=100
             )
             answer = response.choices[0].message.content[:100]
-            print(f"   ✅ Passed safety check")
+            print("   ✅ Passed safety check")
             print(f"   Response: {answer}...")
 
             results.append({
@@ -197,10 +196,7 @@ async def test_llamastack_approach():
     print("="*80)
 
     try:
-        client = LlamaStackClient(
-            base_url=LLAMASTACK_BASE_URL,
-            api_key=LITELLM_API_KEY
-        )
+        client = LlamaStackClient(base_url=LLAMASTACK_BASE_URL)
 
         print("\n🔧 Using LiteLLM llama-guard3 model as shield...")
         print("   ℹ️  LlamaStack configured to use LiteLLM backend")
@@ -214,8 +210,9 @@ async def test_llamastack_approach():
 
             try:
                 # Call llama-guard3 via LlamaStack client
+                # Model format: provider_id/model_name
                 response = client.chat.completions.create(
-                    model="llama-guard3",
+                    model="litellm-provider/llama-guard3",
                     messages=[{"role": "user", "content": test['prompt']}]
                 )
 
@@ -235,7 +232,7 @@ async def test_llamastack_approach():
                         "category": category
                     })
                 else:
-                    print(f"   ✅ Passed safety check")
+                    print("   ✅ Passed safety check")
                     results.append({
                         "test": test['name'],
                         "expected": test['expected'],

@@ -19,6 +19,20 @@ This Helm chart deploys LiteLLM proxy service with optional Streamlit UI on Kube
 
 ## Quick Start
 
+### Prerequisites
+
+Before installing, you need to download the chart dependencies (pgvector and llama-stack):
+
+```bash
+# Navigate to the helm directory
+cd deploy/helm
+
+# Download dependencies from ai-architecture-charts repository
+helm dependency update
+```
+
+This downloads the required subcharts into the `charts/` directory based on the `Chart.lock` file.
+
 ### Deploy LiteLLM Only
 
 ```bash

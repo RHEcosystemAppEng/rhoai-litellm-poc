@@ -132,12 +132,12 @@ seed:
     - team_alias: marketing
       max_budget: 50.0
   users:
-    - user_email: eng-user@example.com
-      team_alias: engineering
-    - user_email: mkt-user@example.com
-      team_alias: marketing
+    # - user_email: eng-user@example.com
+    #   team_alias: engineering
+    # - user_email: mkt-user@example.com
+    #   team_alias: marketing
 
-# PostgreSQL database (pgvector subchart)
+# PostgreSQL database (pgvector subchart from ai-architecture-charts)
 # Required for: virtual keys, teams, users, budgets, spend tracking
 # Set enabled: false to run LiteLLM in stateless mode
 pgvector:
@@ -156,3 +156,26 @@ pgvector:
         resources:
           requests:
             storage: 5Gi
+
+# Llama Stack (llama-stack subchart from ai-architecture-charts)
+# AI framework for building agentic applications
+# See: https://github.com/rh-ai-quickstart/ai-architecture-charts/tree/main/llama-stack
+llama-stack:
+  enabled: true
+  image:
+    repository: llamastack/distribution-starter
+    pullPolicy: IfNotPresent
+    tag: "0.3.3"
+  secrets:
+    TAVILY_SEARCH_API_KEY: "Paste-your-key-here"
+  pgvector:
+    enabled: true
+
+  # Configure ONE remote model that connects to LiteLLM
+  # This creates a single provider that can access ALL models from LiteLLM
+  models:
+    litellm-provider:
+      id: llama3  # Default model to use
+      url: http://litellm:4000/v1
+      apiToken: master-key
+      enabled: true

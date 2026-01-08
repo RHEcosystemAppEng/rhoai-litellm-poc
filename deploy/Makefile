@@ -70,6 +70,8 @@ endif
 
 install: build-ui
 	@echo "Installing LiteLLM + UI..."
+	@echo "Updating Helm dependencies..."
+	@cd $(HELM_CHART) && helm dependency update
 	@$(KUBE_CMD) create namespace $(NAMESPACE) --dry-run=client -o yaml | $(KUBE_CMD) apply -f -
 ifeq ($(USE_OPENSHIFT),true)
 	@helm upgrade --install $(RELEASE_NAME) $(HELM_CHART) \
@@ -93,6 +95,8 @@ endif
 
 install-api-only:
 	@echo "Installing LiteLLM (API only, no UI)..."
+	@echo "Updating Helm dependencies..."
+	@cd $(HELM_CHART) && helm dependency update
 	@$(KUBE_CMD) create namespace $(NAMESPACE) --dry-run=client -o yaml | $(KUBE_CMD) apply -f -
 	@helm upgrade --install $(RELEASE_NAME) $(HELM_CHART) \
 		--namespace $(NAMESPACE) \
@@ -105,6 +109,8 @@ install-api-only:
 
 upgrade:
 	@echo "Upgrading LiteLLM deployment..."
+	@echo "Updating Helm dependencies..."
+	@cd $(HELM_CHART) && helm dependency update
 	@helm upgrade $(RELEASE_NAME) $(HELM_CHART) \
 		--namespace $(NAMESPACE) \
 		--wait
