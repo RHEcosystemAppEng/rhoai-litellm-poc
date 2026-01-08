@@ -171,8 +171,22 @@ llama-stack:
   pgvector:
     enabled: true
   models:
-    remote-llm:
-      id: llama-4-scout-17b-16e-w4a16
-      url: https://llama-4-scout-17b-16e-w4a16-maas-apicast-production.apps.prod.rhoai.rh-aiservices-bu.com:443/v1
-      apiToken: d0b59e042869ac45901ea100d168efd6
+    # All models now point to LiteLLM which handles routing to backends (Ollama, vLLM, etc.)
+    llama3:
+      id: llama3  # Must match model_name in LiteLLM config above
+      url: http://litellm:4000/v1
+      apiToken: master-key  # Use LiteLLM master key for authentication
+      enabled: true
+
+    llama-guard3:
+      id: llama-guard3  # Must match model_name in LiteLLM config above
+      url: http://litellm:4000/v1
+      apiToken: master-key  # Use LiteLLM master key for authentication
+      enabled: true
+      registerShield: true  # Register this as a safety/guardrail shield
+
+    llama-fp8:
+      id: llama-fp8  # Must match model_name in LiteLLM config above
+      url: http://litellm:4000/v1
+      apiToken: master-key  # Use LiteLLM master key for authentication
       enabled: true
