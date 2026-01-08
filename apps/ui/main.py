@@ -30,7 +30,7 @@ st.markdown(
 # Get LlamaStack URL from environment variable or default
 LLAMASTACK_URL = os.getenv(
     "LLAMASTACK_URL",
-    "http://llamastack-hacohen-llmlite.apps.ai-dev02.kni.syseng.devcluster.openshift.com",
+    "https://llamastack-hacohen-llmlite.apps.ai-dev02.kni.syseng.devcluster.openshift.com",
 )
 
 print(f"LLAMASTACK_URL: {LLAMASTACK_URL}")
@@ -86,46 +86,74 @@ def send_chat_message(client: LlamaStackClient, model: str, messages: list) -> s
         if response is None:
             return "⚠️ API returned None response"
 
+        # Try standard OpenAI format (choices directly on response)
+        if hasattr(response, "choices") and response.choices:
+            return response.choices[0].message.content
+
         # LlamaStack returns data in a 'data' array for list responses
         if hasattr(response, "data") and response.data:
-            # Find the completion that matches our current request
-            # LlamaStack returns all historical completions, we need the one for THIS model and message
+            # LlamaStack may return historical completions
+            # We need to find the LATEST completion for THIS model with matching conversation history
             current_message = messages[-1]["content"]  # The user's latest message
+            conversation_length = len(messages)
 
+            # First pass: Find exact match by model, conversation length, and last message
             for completion in response.data:
                 if isinstance(completion, dict):
-                    # Check if this completion is for our current model and message
                     completion_model = completion.get("model", "")
                     input_msgs = completion.get("input_messages", [])
 
-                    # Match by model and that it contains our current message
-                    if completion_model == model:
-                        # Check if this completion was for our message
-                        if input_msgs and len(input_msgs) > 0:
-                            last_input = input_msgs[-1].get("content", "")
-                            if last_input == current_message:
-                                # This is our completion!
-                                choices = completion.get("choices", [])
-                                if choices and len(choices) > 0:
-                                    message = choices[0].get("message", {})
-                                    content = message.get("content", "")
+                    # Must match model
+                    if completion_model != model:
+                        continue
+
+                    # Must have same number of messages (same point in conversation)
+                    if len(input_msgs) != conversation_length:
+                        continue
+
+                    # Must match the last user message
+                    if input_msgs and len(input_msgs) > 0:
+                        last_input = input_msgs[-1].get("content", "")
+                        if last_input == current_message:
+                            # Found exact match!
+                            choices = completion.get("choices", [])
+                            if choices and len(choices) > 0:
+                                message = choices[0].get("message", {})
+                                content = message.get("content", "")
+                                if content:
                                     return content
 
-            # Fallback: if no exact match, use the first completion with matching model
+            # Second pass: Find by matching entire conversation history
             for completion in response.data:
                 if isinstance(completion, dict):
-                    if completion.get("model", "") == model:
+                    completion_model = completion.get("model", "")
+                    input_msgs = completion.get("input_messages", [])
+
+                    if completion_model != model:
+                        continue
+
+                    if len(input_msgs) != conversation_length:
+                        continue
+
+                    # Check if entire conversation matches
+                    matches = True
+                    for i, msg in enumerate(messages):
+                        if i >= len(input_msgs):
+                            matches = False
+                            break
+                        if input_msgs[i].get("content", "") != msg["content"]:
+                            matches = False
+                            break
+
+                    if matches:
                         choices = completion.get("choices", [])
                         if choices and len(choices) > 0:
                             message = choices[0].get("message", {})
                             content = message.get("content", "")
-                            return content
+                            if content:
+                                return content
 
-            return f"⚠️ No completion found for model: {model}"
-
-        # Try standard OpenAI format (choices directly on response)
-        if hasattr(response, "choices") and response.choices:
-            return response.choices[0].message.content
+            return f"⚠️ No matching completion found for model: {model}"
 
         return f"⚠️ Unknown response format. Type: {type(response)}"
 
@@ -270,7 +298,7 @@ if prompt := st.chat_input("Type your message here..."):
 if not st.session_state.messages:
     st.info("""
     👋 **Welcome to LlamaStack Chat!** To get started:
-    1. The app connects to LlamaStack server (default: http://llamastack-hacohen-llmlite.apps.ai-dev02.kni.syseng.devcluster.openshift.com)
+    1. The app connects to LlamaStack server (default: https://llamastack-hacohen-llmlite.apps.ai-dev02.kni.syseng.devcluster.openshift.com)
     2. Click **🔄 Refresh Models** to load available models
     3. Select a model from the dropdown (e.g., `litellm-provider/llama3`)
     4. Start chatting!
