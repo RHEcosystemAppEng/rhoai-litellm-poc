@@ -170,23 +170,12 @@ llama-stack:
     TAVILY_SEARCH_API_KEY: "Paste-your-key-here"
   pgvector:
     enabled: true
+
+  # Configure ONE remote model that connects to LiteLLM
+  # This creates a single provider that can access ALL models from LiteLLM
   models:
-    # All models now point to LiteLLM which handles routing to backends (Ollama, vLLM, etc.)
-    llama3:
-      id: llama3  # Must match model_name in LiteLLM config above
+    litellm-provider:
+      id: llama3  # Default model to use
       url: http://litellm:4000/v1
-      apiToken: master-key  # Use LiteLLM master key for authentication
-      enabled: true
-
-    llama-guard3:
-      id: llama-guard3  # Must match model_name in LiteLLM config above
-      url: http://litellm:4000/v1
-      apiToken: master-key  # Use LiteLLM master key for authentication
-      enabled: true
-      registerShield: true  # Register this as a safety/guardrail shield
-
-    llama-fp8:
-      id: llama-fp8  # Must match model_name in LiteLLM config above
-      url: http://litellm:4000/v1
-      apiToken: master-key  # Use LiteLLM master key for authentication
+      apiToken: master-key
       enabled: true
