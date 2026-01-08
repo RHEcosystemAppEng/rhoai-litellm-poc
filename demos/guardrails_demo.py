@@ -10,7 +10,6 @@ Both use LlamaGuard 3 (8B model) for AI-based content moderation.
 """
 
 import os
-import sys
 import asyncio
 import litellm
 from llama_stack_client import LlamaStackClient
@@ -153,7 +152,7 @@ def test_litellm_approach():
                 max_tokens=100
             )
             answer = response.choices[0].message.content[:100]
-            print(f"   ✅ Passed safety check")
+            print("   ✅ Passed safety check")
             print(f"   Response: {answer}...")
 
             results.append({
@@ -235,7 +234,7 @@ async def test_llamastack_approach():
                         "category": category
                     })
                 else:
-                    print(f"   ✅ Passed safety check")
+                    print("   ✅ Passed safety check")
                     results.append({
                         "test": test['name'],
                         "expected": test['expected'],
