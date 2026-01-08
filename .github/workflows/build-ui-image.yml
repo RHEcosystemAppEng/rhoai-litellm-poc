@@ -4,12 +4,11 @@ on:
   push:
     branches:
       - main
-      - feature/ci-for-ui
-  #   paths:
-  #     - 'apps/ui/**'
-  # pull_request:
-  #   paths:
-  #     - 'apps/ui/**'
+    paths:
+      - 'apps/ui/**'
+  pull_request:
+    paths:
+      - 'apps/ui/**'
 
 env:
   IMAGE_REGISTRY: quay.io
