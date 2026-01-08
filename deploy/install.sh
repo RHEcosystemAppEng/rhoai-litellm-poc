@@ -27,12 +27,19 @@ oc whoami || { echo "Error: Not logged into OpenShift. Run 'oc login' first."; e
 echo ""
 
 # Step 1: Create namespace
-echo "[1/2] Creating namespace '${NAMESPACE}'..."
+echo "[1/3] Creating namespace '${NAMESPACE}'..."
 oc create namespace "${NAMESPACE}" --dry-run=client -o yaml | oc apply -f -
 echo ""
 
-# Step 2: Deploy with Helm
-echo "[2/2] Deploying LiteLLM with Helm..."
+# Step 2: Update Helm dependencies
+echo "[2/3] Updating Helm chart dependencies..."
+cd "${HELM_CHART}"
+helm dependency update
+cd - > /dev/null
+echo ""
+
+# Step 3: Deploy with Helm
+echo "[3/3] Deploying LiteLLM with Helm..."
 helm upgrade --install "${RELEASE_NAME}" "${HELM_CHART}" \
     --namespace "${NAMESPACE}" \
     --set ui.enabled=true \
