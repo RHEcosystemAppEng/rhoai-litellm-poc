@@ -171,6 +171,14 @@ llama-stack:
   pgvector:
     enabled: true
 
+  # OpenShift Route configuration
+  route:
+    enabled: true
+    host: ""
+    tls:
+      termination: edge
+      insecureEdgeTerminationPolicy: Redirect
+
   # Configure ONE remote model that connects to LiteLLM
   # This creates a single provider that can access ALL models from LiteLLM
   models:
