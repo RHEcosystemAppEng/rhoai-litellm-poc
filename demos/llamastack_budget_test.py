@@ -25,7 +25,7 @@ from llama_stack_client import LlamaStackClient
 LITELLM_URL = "https://litellm-hacohen-llmlite.apps.ai-dev02.kni.syseng.devcluster.openshift.com"
 LLAMASTACK_URL = "https://llamastack-hacohen-llmlite.apps.ai-dev02.kni.syseng.devcluster.openshift.com"
 MASTER_KEY = "master-key"
-MODEL = "llama-fp8"  # Direct LiteLLM model name (no provider prefix)
+MODEL = "litellm-provider/llama-fp8"  # LlamaStack provider/model format
 
 # Budget configuration - set very low to quickly demonstrate exhaustion
 MAX_BUDGET = 0.001  # $0.001 USD
@@ -104,13 +104,15 @@ def main():
     print(f"  ✓ Max budget: ${MAX_BUDGET}")
 
     # Step 1.5: Initialize LlamaStack client ONCE with the budgeted key
-    # IMPORTANT: Pointing directly at LITELLM_URL instead of LLAMASTACK_URL
-    print("\n[Step 1.5] Initializing LlamaStack client with budgeted key (direct to LiteLLM)...")
+    # Using X-LlamaStack-Provider-Data header to pass budgeted key to backend
+    print("\n[Step 1.5] Initializing LlamaStack client with budgeted key via provider_data...")
     llamastack_client = LlamaStackClient(
-        base_url=LITELLM_URL,  # Connect directly to LiteLLM, not LlamaStack server
-        api_key=api_key  # Use the budgeted key
+        base_url=LLAMASTACK_URL,  # Connect to LlamaStack server
+        provider_data={
+            "vllm_api_token": api_key  # Pass budgeted key via X-LlamaStack-Provider-Data
+        }
     )
-    print("  ✓ Client initialized")
+    print("  ✓ Client initialized with provider_data")
 
     request_count = 0
     budget_exceeded = False
