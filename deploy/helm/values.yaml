@@ -54,7 +54,9 @@ litellm:
         litellm_params:
           model: ollama/llama3
           api_base: http://ollama:11434
-      
+          input_cost_per_token: 0.00001   # $0.01 per 1K input tokens
+          output_cost_per_token: 0.00002  # $0.02 per 1K output tokens
+
       - model_name: llama-fp8
         litellm_params:
           model: openai/llama-fp8
