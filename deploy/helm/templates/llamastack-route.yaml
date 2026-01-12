@@ -1,4 +1,6 @@
-{{- if index .Values "llama-stack" "route" "enabled" }}
+{{- $llamaStack := index .Values "llama-stack" | default dict }}
+{{- $route := index $llamaStack "route" | default dict }}
+{{- if and $route (index $route "enabled") }}
 apiVersion: route.openshift.io/v1
 kind: Route
 metadata:
