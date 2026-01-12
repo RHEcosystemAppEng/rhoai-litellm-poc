@@ -6,5 +6,13 @@ metadata:
     {{- include "litellm.labels" . | nindent 4 }}
 data:
   config.yaml: |
-    {{- toYaml .Values.litellm.config | nindent 4 }}
+    {{- $config := deepCopy .Values.litellm.config }}
+    {{- if $config.litellm_settings }}
+    {{- if and $config.litellm_settings.cache $config.litellm_settings.cache_params }}
+    {{- if eq $config.litellm_settings.cache_params.type "redis" }}
+    {{- $_ := set $config.litellm_settings.cache_params "host" (printf "%s-redis-master" (include "litellm.fullname" .)) }}
+    {{- end }}
+    {{- end }}
+    {{- end }}
+    {{- toYaml $config | nindent 4 }}
 
