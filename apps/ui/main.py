@@ -30,7 +30,7 @@ st.markdown(
 # Get LlamaStack URL from environment variable or default
 LLAMASTACK_URL = os.getenv(
     "LLAMASTACK_URL",
-    "https://llamastack-hacohen-llmlite.apps.ai-dev02.kni.syseng.devcluster.openshift.com",
+    "https://litellm-llmlite.apps.ai-dev02.kni.syseng.devcluster.openshift.com",
 )
 
 print(f"LLAMASTACK_URL: {LLAMASTACK_URL}")
@@ -47,7 +47,7 @@ if "client" not in st.session_state:
 def get_client(endpoint: str) -> LlamaStackClient:
     """Get or create LlamaStack client."""
     try:
-        return LlamaStackClient(base_url=endpoint)
+        return LlamaStackClient(base_url=endpoint, api_key=os.getenv("LITELLM_API_KEY"))
     except Exception as e:
         st.error(f"Error creating client: {e}")
         return None

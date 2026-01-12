@@ -78,15 +78,13 @@ ifeq ($(USE_OPENSHIFT),true)
 		--namespace $(NAMESPACE) \
 		--set ui.enabled=true \
 		--set ui.image.repository=quay.io/ecosystem-appeng/litellm-streamlit-ui \
-		--set ui.image.tag=$(UI_IMAGE_TAG) \
-		--wait
+		--set ui.image.tag=$(UI_IMAGE_TAG)
 else
 	@helm upgrade --install $(RELEASE_NAME) $(HELM_CHART) \
 		--namespace $(NAMESPACE) \
 		--set ui.enabled=true \
 		--set ui.image.repository=$(UI_IMAGE_REPO) \
-		--set ui.image.tag=$(UI_IMAGE_TAG) \
-		--wait
+		--set ui.image.tag=$(UI_IMAGE_TAG)
 endif
 	@echo ""
 	@echo "✅ Installation complete!"

@@ -1,4 +1,5 @@
-{{- if index .Values "llama-stack" "route" "enabled" }}
+{{- $llamastack := index .Values "llama-stack" }}
+{{- if and $llamastack $llamastack.route $llamastack.route.enabled }}
 apiVersion: route.openshift.io/v1
 kind: Route
 metadata:
@@ -7,7 +8,7 @@ metadata:
     {{- include "litellm.labels" . | nindent 4 }}
     app.kubernetes.io/component: llamastack
 spec:
-  {{- with (index .Values "llama-stack" "route" "host") }}
+  {{- with $llamastack.route.host }}
   host: {{ . }}
   {{- end }}
   to:
@@ -16,10 +17,10 @@ spec:
     weight: 100
   port:
     targetPort: http
-  {{- if (index .Values "llama-stack" "route" "tls") }}
+  {{- if $llamastack.route.tls }}
   tls:
-    termination: {{ (index .Values "llama-stack" "route" "tls" "termination") }}
-    {{- with (index .Values "llama-stack" "route" "tls" "insecureEdgeTerminationPolicy") }}
+    termination: {{ $llamastack.route.tls.termination }}
+    {{- with $llamastack.route.tls.insecureEdgeTerminationPolicy }}
     insecureEdgeTerminationPolicy: {{ . }}
     {{- end }}
   {{- end }}

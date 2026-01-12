@@ -51,7 +51,7 @@ spec:
         - name: LITELLM_SUPPRESS_AUTH_ERRORS
           value: "true"
         - name: LITELLM_API_KEY
-          value: {{ .Values.litellm.apiKey | quote }}
+          value: {{ .Values.ui.apiKey | quote }}
         - name: LITELLM_SALT
           value: {{ .Values.litellm.salt | quote }}
         - name: LITELLM_MASTER_KEY

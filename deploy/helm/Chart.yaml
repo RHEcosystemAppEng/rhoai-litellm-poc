@@ -23,6 +23,6 @@ dependencies:
     condition: pgvector.enabled
 
   - name: llama-stack
-    version: 0.6.4
-    repository: https://rh-ai-quickstart.github.io/ai-architecture-charts
+    version: 0.6.5
+    repository: file://../../../../work/forks/ai-architecture-charts/llama-stack/helm
     condition: llama-stack.enabled

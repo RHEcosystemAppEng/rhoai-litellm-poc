@@ -81,6 +81,7 @@ litellm:
 ui:
   enabled: true
   replicaCount: 1
+  apiKey: "sk-mkt-user-key"
   image:
     repository: quay.io/ecosystem-appeng/litellm-streamlit-ui
     pullPolicy: Always
@@ -123,7 +124,7 @@ ui:
       memory: 256Mi
 
 # Seed data configuration
-# Creates initial teams and users after LiteLLM is deployed
+# Creates initial teams, users, and API keys after LiteLLM is deployed
 seed:
   enabled: true
   teams:
@@ -132,10 +133,14 @@ seed:
     - team_alias: marketing
       max_budget: 50.0
   users:
-    # - user_email: eng-user@example.com
-    #   team_alias: engineering
-    # - user_email: mkt-user@example.com
-    #   team_alias: marketing
+    - user_email: eng-user@example.com
+      team_alias: engineering
+      api_key: "sk-eng-user-key"        # Optional: specific API key (auto-generated if omitted)
+      key_alias: "engineering-user-key" # Optional: friendly name for the key
+    - user_email: mkt-user@example.com
+      team_alias: marketing
+      api_key: "sk-mkt-user-key"
+      key_alias: "marketing-user-key"
 
 # PostgreSQL database (pgvector subchart from ai-architecture-charts)
 # Required for: virtual keys, teams, users, budgets, spend tracking
@@ -161,7 +166,7 @@ pgvector:
 # AI framework for building agentic applications
 # See: https://github.com/rh-ai-quickstart/ai-architecture-charts/tree/main/llama-stack
 llama-stack:
-  enabled: true
+  enabled: true  # Temporarily disabled to test core LiteLLM + jobs
   image:
     repository: llamastack/distribution-starter
     pullPolicy: IfNotPresent
@@ -171,11 +176,19 @@ llama-stack:
   pgvector:
     enabled: true
 
+  # Mount the auto-generated LiteLLM API key secret
+  # This secret is created by the parent chart and contains a dynamically generated API key
+  # All keys in this secret will be available as environment variables
+  extraSecretRefs:
+    - name: llamastack-litellm-apikey
+
   # Configure ONE remote model that connects to LiteLLM
   # This creates a single provider that can access ALL models from LiteLLM
+  # The apiToken uses environment variable substitution - LITELLM_API_KEY is loaded
+  # from the llamastack-litellm-apikey secret via extraSecretRefs above
   models:
     litellm-provider:
       id: llama3  # Default model to use
       url: http://litellm:4000/v1
-      apiToken: master-key
+      apiToken: "${env.LITELLM_API_KEY}"  # Loaded from secret (uses first seed user's api_key)
       enabled: true

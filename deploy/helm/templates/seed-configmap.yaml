@@ -24,7 +24,7 @@ data:
     echo ""
 
     # Wait for LiteLLM to be ready
-    echo "[1/3] Waiting for LiteLLM to be ready..."
+    echo "[1/4] Waiting for LiteLLM to be ready..."
     MAX_RETRIES=60
     RETRY_COUNT=0
     while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
@@ -44,7 +44,7 @@ data:
 
     # Create teams
     echo ""
-    echo "[2/3] Creating teams..."
+    echo "[2/4] Creating teams..."
     {{- range .Values.seed.teams }}
     echo "  Creating team: {{ .team_alias }}"
     RESPONSE=$(curl -sf -X POST "http://${LITELLM_URL}/team/new" \
@@ -72,7 +72,7 @@ data:
 
     # Create users
     echo ""
-    echo "[3/3] Creating users..."
+    echo "[3/4] Creating users..."
     {{- range .Values.seed.users }}
     echo "  Creating user: {{ .user_email }}"
     {{- if .team_alias }}
@@ -88,7 +88,7 @@ data:
     fi
     {{- end }}
     
-    curl -sf -X POST "http://${LITELLM_URL}/user/new" \
+    USER_RESPONSE=$(curl -sf -X POST "http://${LITELLM_URL}/user/new" \
       -H "Authorization: Bearer ${MASTER_KEY}" \
       -H "Content-Type: application/json" \
       -d '{
@@ -99,7 +99,80 @@ data:
         {{- if .max_budget }},
         "max_budget": {{ .max_budget }}
         {{- end }}
-      }' > /dev/null 2>&1 && echo "    → Created user '{{ .user_email }}'" || echo "    → User '{{ .user_email }}' already exists or created"
+      }' 2>&1) && echo "    → Created user '{{ .user_email }}'" || echo "    → User '{{ .user_email }}' already exists or created"
+    # Store user_id for API key creation
+    USER_ID_{{ .user_email | replace "@" "_at_" | replace "." "_" | replace "-" "_" }}=$(echo "$USER_RESPONSE" | grep -o '"user_id":"[^"]*"' | cut -d'"' -f4 || echo "")
+    {{- end }}
+
+    # Create API keys for users
+    echo ""
+    echo "[4/4] Creating API keys for users..."
+    {{- range .Values.seed.users }}
+    {{- if or .api_key .key_alias }}
+    echo "  Creating API key for: {{ .user_email }}"
+    
+    # Get user_id if we have it stored, otherwise fetch from API
+    USER_ID="${USER_ID_{{ .user_email | replace "@" "_at_" | replace "." "_" | replace "-" "_" }}}"
+    if [ -z "$USER_ID" ]; then
+      # Try to get user_id from the API
+      USER_LIST=$(curl -sf "http://${LITELLM_URL}/user/list" \
+        -H "Authorization: Bearer ${MASTER_KEY}" 2>/dev/null || echo "[]")
+      USER_ID=$(echo "$USER_LIST" | grep -o '"user_id":"[^"]*"[^}]*"user_email":"{{ .user_email }}"' | head -1 | grep -o '"user_id":"[^"]*"' | cut -d'"' -f4 || echo "")
+      if [ -z "$USER_ID" ]; then
+        USER_ID=$(echo "$USER_LIST" | grep -o '"user_email":"{{ .user_email }}"[^}]*"user_id":"[^"]*"' | head -1 | grep -o '"user_id":"[^"]*"' | cut -d'"' -f4 || echo "")
+      fi
+    fi
+    
+    {{- if .team_alias }}
+    # Get team_id for {{ .team_alias }}
+    TEAM_ID=""
+    TEAM_RESPONSE=$(curl -sf "http://${LITELLM_URL}/team/list" \
+      -H "Authorization: Bearer ${MASTER_KEY}" 2>/dev/null || echo "[]")
+    TEAM_ID=$(echo "$TEAM_RESPONSE" | grep -o '"team_id":"[^"]*"[^}]*"team_alias":"{{ .team_alias }}"' | head -1 | grep -o '"team_id":"[^"]*"' | cut -d'"' -f4 || echo "")
+    if [ -z "$TEAM_ID" ]; then
+      TEAM_ID=$(echo "$TEAM_RESPONSE" | grep -o '"team_alias":"{{ .team_alias }}"[^}]*"team_id":"[^"]*"' | head -1 | grep -o '"team_id":"[^"]*"' | cut -d'"' -f4 || echo "")
+    fi
+    {{- end }}
+    
+    # Create API key
+    KEY_RESPONSE=$(curl -s -w "\n%{http_code}" -X POST "http://${LITELLM_URL}/key/generate" \
+      -H "Authorization: Bearer ${MASTER_KEY}" \
+      -H "Content-Type: application/json" \
+      -d '{
+        {{- if .api_key }}
+        "key": "{{ .api_key }}",
+        {{- end }}
+        {{- if .key_alias }}
+        "key_alias": "{{ .key_alias }}",
+        {{- end }}
+        "user_id": "'"${USER_ID}"'"
+        {{- if .team_alias }},
+        "team_id": "'"${TEAM_ID}"'"
+        {{- end }},
+        "metadata": {"created_by": "seed-job", "user_email": "{{ .user_email }}"}
+      }' 2>&1)
+    
+    HTTP_CODE=$(echo "$KEY_RESPONSE" | tail -n1)
+    BODY=$(echo "$KEY_RESPONSE" | sed '$d')
+    
+    if [ "$HTTP_CODE" = "200" ] || [ "$HTTP_CODE" = "201" ]; then
+      echo "    → API key created successfully for '{{ .user_email }}'"
+      {{- if .api_key }}
+      echo "    → Key: {{ .api_key | trunc 15 }}..."
+      {{- else }}
+      # Extract and display generated key prefix
+      GENERATED_KEY=$(echo "$BODY" | grep -o '"key":"[^"]*"' | cut -d'"' -f4 || echo "")
+      if [ -n "$GENERATED_KEY" ]; then
+        echo "    → Generated key: ${GENERATED_KEY:0:15}..."
+      fi
+      {{- end }}
+    elif echo "$BODY" | grep -qi "already exists\|duplicate"; then
+      echo "    → API key already exists for '{{ .user_email }}', skipping"
+    else
+      echo "    → API key creation response (HTTP $HTTP_CODE): $BODY"
+      echo "    → Continuing anyway (key may already exist)"
+    fi
+    {{- end }}
     {{- end }}
 
     echo ""

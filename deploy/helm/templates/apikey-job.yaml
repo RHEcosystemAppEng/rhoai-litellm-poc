@@ -1,0 +1,118 @@
+{{- if index .Values "llama-stack" "enabled" }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "litellm.fullname" . }}-create-apikey
+  labels:
+    {{- include "litellm.labels" . | nindent 4 }}
+    app.kubernetes.io/component: apikey-setup
+  annotations:
+    "helm.sh/hook": post-install,post-upgrade
+    "helm.sh/hook-weight": "-5"
+spec:
+  backoffLimit: 5
+  ttlSecondsAfterFinished: 300
+  template:
+    metadata:
+      labels:
+        {{- include "litellm.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: apikey-setup
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "litellm.serviceAccountName" . }}
+      restartPolicy: OnFailure
+      containers:
+      - name: create-apikey
+        image: curlimages/curl:8.5.0
+        env:
+        - name: LITELLM_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "litellm.llamastackApiKeySecretName" . }}
+              key: LITELLM_API_KEY
+        - name: LITELLM_MASTER_KEY
+          value: {{ .Values.litellm.masterKey | quote }}
+        command:
+        - /bin/sh
+        - -c
+        - |
+          set -e
+          
+          LITELLM_URL="{{ include "litellm.fullname" . }}:{{ .Values.service.port }}"
+          
+          echo "================================================"
+          echo "LiteLLM API Key Creation for LlamaStack"
+          echo "================================================"
+          echo "Target: http://${LITELLM_URL}"
+          echo ""
+          
+          # Wait for LiteLLM to be ready
+          echo "[1/2] Waiting for LiteLLM to be ready..."
+          MAX_RETRIES=60
+          RETRY_COUNT=0
+          while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
+            if curl -sf "http://${LITELLM_URL}/health/readiness" > /dev/null 2>&1; then
+              echo "  ✓ LiteLLM is ready!"
+              break
+            fi
+            RETRY_COUNT=$((RETRY_COUNT + 1))
+            echo "  Waiting... (${RETRY_COUNT}/${MAX_RETRIES})"
+            sleep 5
+          done
+          
+          if [ $RETRY_COUNT -eq $MAX_RETRIES ]; then
+            echo "  ✗ Timeout waiting for LiteLLM"
+            exit 1
+          fi
+          
+          # Create API key for LlamaStack
+          echo ""
+          echo "[2/2] Creating API key for LlamaStack..."
+          echo "  Key prefix: ${LITELLM_API_KEY:0:15}..."
+          
+          # Try to create the key - it may already exist from a previous install
+          RESPONSE=$(curl -s -w "\n%{http_code}" -X POST "http://${LITELLM_URL}/key/generate" \
+            -H "Authorization: Bearer ${LITELLM_MASTER_KEY}" \
+            -H "Content-Type: application/json" \
+            -d '{
+              "key": "'"${LITELLM_API_KEY}"'",
+              "key_alias": "llamastack-key",
+              "models": [],
+              "metadata": {"purpose": "llamastack-inference", "created_by": "helm-hook"}
+            }' 2>&1)
+          
+          HTTP_CODE=$(echo "$RESPONSE" | tail -n1)
+          BODY=$(echo "$RESPONSE" | sed '$d')
+          
+          if [ "$HTTP_CODE" = "200" ] || [ "$HTTP_CODE" = "201" ]; then
+            echo "  ✓ API key created successfully"
+          elif echo "$BODY" | grep -qi "already exists\|duplicate"; then
+            echo "  → API key already exists, skipping creation"
+          else
+            echo "  → API key creation response (HTTP $HTTP_CODE): $BODY"
+            echo "  → Continuing anyway (key may already exist)"
+          fi
+          
+          echo ""
+          echo "================================================"
+          echo "API key setup completed!"
+          echo "================================================"
+        resources:
+          limits:
+            cpu: 100m
+            memory: 64Mi
+          requests:
+            cpu: 50m
+            memory: 32Mi
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+{{- end }}
