@@ -30,7 +30,7 @@ st.markdown(
 # Get LlamaStack URL from environment variable or default
 LLAMASTACK_URL = os.getenv(
     "LLAMASTACK_URL",
-    "https://litellm-llmlite.apps.ai-dev02.kni.syseng.devcluster.openshift.com",
+    "http://llamastack:8321",
 )
 
 print(f"LLAMASTACK_URL: {LLAMASTACK_URL}")
