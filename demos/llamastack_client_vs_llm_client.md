@@ -114,23 +114,76 @@ python llamastack_client_vs_llm_client.py
 DEMO_PROVIDER=llamastack python llamastack_client_vs_llm_client.py
 ```
 
-## The `CompletionClient` Wrapper
+## Architecture: Factory + Tester Pattern
 
-The demo includes a `CompletionClient` class that abstracts away the minor differences between providers:
+The demo uses a clean separation of concerns with two classes:
+
+### 1. `OpenAIClientFactory` - Creates OpenAI-Compatible Clients
+
+This factory class creates a client for any supported provider. The key insight is that **both providers return OpenAI-compatible clients**:
 
 ```python
-client = CompletionClient(
+from demos.llamastack_client_vs_llm_client import OpenAIClientFactory
+
+# Create a client for LiteLLM
+client = OpenAIClientFactory.create(
+    provider="litellm",
     api_key=api_key,
-    base_url=url,
-    provider="litellm"  # or "llamastack"
+    base_url="http://litellm:4000"
 )
 
-# Same interface regardless of provider
-response = client.completion(model="llama-fp8", prompt="Hello!")
-models = client.list_models()
+# OR create a client for LlamaStack - same interface!
+client = OpenAIClientFactory.create(
+    provider="llamastack",
+    api_key=api_key,
+    base_url="http://llamastack:8321"
+)
+
+# Both return OpenAI-compatible clients - use standard OpenAI API patterns
+response = client.chat.completions.create(
+    model="llama-fp8",
+    messages=[{"role": "user", "content": "Hello!"}]
+)
 ```
 
-This pattern demonstrates how easily you can build provider-agnostic AI applications.
+### 2. `LLMTester` - Runs Operations with Any OpenAI-Compatible Client
+
+This class takes any OpenAI-compatible client and runs standard operations. **The same code works regardless of which provider created the client**:
+
+```python
+from demos.llamastack_client_vs_llm_client import OpenAIClientFactory, LLMTester
+
+# Create client (from either provider)
+client = OpenAIClientFactory.create(provider="litellm", api_key=key, base_url=url)
+
+# Create tester - works with ANY OpenAI-compatible client
+tester = LLMTester(client=client, model_prefix="")  # or "litellm-provider/" for LlamaStack
+
+# Run standard operations - same code for both providers!
+models = tester.list_models()
+response = tester.completion(model="llama-fp8", prompt="Hello!")
+
+# Or run all tests at once
+results = tester.run_all_tests(model="llama-fp8")
+```
+
+### Why This Architecture?
+
+```
+┌─────────────────────┐
+│ OpenAIClientFactory │ ──▶ Creates OpenAI-compatible client
+└─────────────────────┘
+          │
+          ▼
+┌─────────────────────┐
+│     LLMTester       │ ──▶ Runs tests/operations with that client
+└─────────────────────┘
+```
+
+- **Separation of Concerns**: Client creation is separate from operations
+- **Clarity**: Makes it obvious that both providers use the same OpenAI API
+- **Testability**: Swap out the client for testing without changing operation code
+- **Flexibility**: Add new providers to the factory without touching the tester
 
 ## Conclusion
 

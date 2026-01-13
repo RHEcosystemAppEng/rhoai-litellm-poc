@@ -166,7 +166,7 @@ pgvector:
 # AI framework for building agentic applications
 # See: https://github.com/rh-ai-quickstart/ai-architecture-charts/tree/main/llama-stack
 llama-stack:
-  enabled: true  # Temporarily disabled to test core LiteLLM + jobs
+  enabled: true
   image:
     repository: llamastack/distribution-starter
     pullPolicy: IfNotPresent
