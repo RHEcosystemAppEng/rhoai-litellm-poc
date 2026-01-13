@@ -31,8 +31,9 @@ spec:
       serviceAccountName: {{ include "litellm.serviceAccountName" . }}
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
-      {{- if .Values.pgvector.enabled }}
+      {{- if or .Values.pgvector.enabled .Values.redis.enabled }}
       initContainers:
+      {{- if .Values.pgvector.enabled }}
       - name: wait-for-postgres
         image: busybox:1.36
         command:
@@ -45,6 +46,21 @@ spec:
             sleep 2
           done
           echo "PostgreSQL is ready!"
+      {{- end }}
+      {{- if .Values.redis.enabled }}
+      - name: wait-for-redis
+        image: busybox:1.36
+        command:
+        - /bin/sh
+        - -c
+        - |
+          echo "Waiting for Redis at {{ include "litellm.fullname" . }}-redis-master:6379..."
+          until nc -z {{ include "litellm.fullname" . }}-redis-master 6379; do
+            echo "Redis not ready, waiting..."
+            sleep 2
+          done
+          echo "Redis is ready!"
+      {{- end }}
       {{- end }}
       containers:
       - name: {{ .Chart.Name }}
