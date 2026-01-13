@@ -60,7 +60,7 @@ litellm:
 
     general_settings:
       # Cache TTL for user API keys (in seconds)
-      user_api_key_cache_ttl: 600
+      user_api_key_cache_ttl: 60
 
       # Enable spend tracking in database
       track_cost_callback: true
