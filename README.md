@@ -211,7 +211,31 @@ By using the configuration above, you can leverage both technologies to achieve 
 |------|-------------|
 | [Budgeting Demo](demos/budget_demo.md) | Demonstrates budget management and cost tracking |
 | [LLM Failover Demo](demos/failover_demo.md) | Shows automatic failover between LLM providers |
+| [LlamaStack vs LiteLLM Client](demos/llamastack_client_vs_llm_client.md) | **Proves client interchangeability** - Shows that LlamaStack and LiteLLM clients can be swapped with minimal code changes because both use OpenAI-compatible APIs |
 | [LlamaStack Integration](demos/llamastack_test.py) | Demonstrates LlamaStack and LiteLLM working together |
+
+### Client Interchangeability Demo
+
+The [LlamaStack vs LiteLLM Client Demo](demos/llamastack_client_vs_llm_client.md) is particularly important as it proves a key architectural benefit: **both clients use OpenAI-compatible interfaces**, allowing you to swap between providers with minimal code changes.
+
+After deploying with Helm, you can run this demo by pointing it at your deployed services:
+
+```bash
+# Set environment variables to your deployed routes
+export LITELLM_URL="https://litellm-litellm.apps.your-cluster.example.com"
+export LLAMASTACK_URL="https://llamastack-litellm.apps.your-cluster.example.com"
+export LITELLM_MASTER_API_KEY="master-key"
+export LITELLM_API_KEY="sk-eng-user-key"
+export LLAMA_STACK_API_KEY="sk-eng-user-key"
+
+# Run with LiteLLM
+python demos/llamastack_client_vs_llm_client.py
+
+# Run with LlamaStack
+DEMO_PROVIDER=llamastack python demos/llamastack_client_vs_llm_client.py
+```
+
+This demonstrates that the same application logic works with either provider, validating the architecture's flexibility.
 
 ---
 

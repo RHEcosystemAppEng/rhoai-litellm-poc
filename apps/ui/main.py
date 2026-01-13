@@ -8,24 +8,21 @@ from llama_stack_client import LlamaStackClient
 st.set_page_config(page_title="LlamaStack Chat", page_icon="💬", layout="wide")
 
 # Custom CSS for better chat appearance
-st.markdown(
-    """
-<style>
-    .stChatMessage {
-        padding: 1rem;
-        border-radius: 0.5rem;
-        margin-bottom: 0.5rem;
-    }
-    .stChatInput {
-        border-radius: 0.5rem;
-    }
-    div[data-testid="stSidebarContent"] {
-        padding-top: 1rem;
-    }
-</style>
-""",
-    unsafe_allow_html=True,
-)
+st.markdown("""
+    <style>
+        .stChatMessage {
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+        .stChatInput {
+            border-radius: 0.5rem;
+        }
+        div[data-testid="stSidebarContent"] {
+            padding-top: 1rem;
+        }
+    </style>
+""",unsafe_allow_html=True,)
 
 # Get LlamaStack URL from environment variable or default
 LLAMASTACK_URL = os.getenv(

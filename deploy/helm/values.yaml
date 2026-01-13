@@ -192,3 +192,11 @@ llama-stack:
       url: http://litellm:4000/v1
       apiToken: "${env.LITELLM_API_KEY}"  # Loaded from secret (uses first seed user's api_key)
       enabled: true
+
+  # OpenShift Route for external access to LlamaStack
+  route:
+    enabled: true
+    host: ""  # Leave empty for auto-generated hostname (e.g., llamastack-litellm.apps.cluster.example.com)
+    tls:
+      termination: edge
+      insecureEdgeTerminationPolicy: Redirect
