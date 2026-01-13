@@ -60,7 +60,7 @@ litellm:
 
     general_settings:
       # Cache TTL for user API keys (in seconds)
-      user_api_key_cache_ttl: 600
+      user_api_key_cache_ttl: 60
 
       # Enable spend tracking in database
       track_cost_callback: true
@@ -74,7 +74,9 @@ litellm:
         litellm_params:
           model: ollama/llama3
           api_base: http://ollama:11434
-      
+          input_cost_per_token: 0.00001   # $0.01 per 1K input tokens
+          output_cost_per_token: 0.00002  # $0.02 per 1K output tokens
+
       - model_name: llama-fp8
         litellm_params:
           model: openai/llama-fp8
@@ -190,6 +192,14 @@ llama-stack:
     TAVILY_SEARCH_API_KEY: "Paste-your-key-here"
   pgvector:
     enabled: true
+
+  # OpenShift Route configuration
+  route:
+    enabled: true
+    host: ""
+    tls:
+      termination: edge
+      insecureEdgeTerminationPolicy: Redirect
 
   # Configure ONE remote model that connects to LiteLLM
   # This creates a single provider that can access ALL models from LiteLLM
