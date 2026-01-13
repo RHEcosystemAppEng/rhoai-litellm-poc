@@ -124,9 +124,20 @@ def main():
         print("\n[Step 2] Sending completion requests through LlamaStack until budget is exhausted...")
         print("-" * 60)
 
+        p_index = 0
+
+        prompts = [
+            "Say 'hello' in one word.",
+            "What is the capital of France?",
+            "What is the capital of the UK?",
+            "What is the capital of the USA?",
+            "Who is the founder of Apple?",
+        ]
+
         while not budget_exceeded:
             request_count += 1
-            prompt = "Say 'hello' in one word."
+            prompt = prompts[p_index]  # "Say 'hello' in one word."
+            p_index = (p_index + 1) % len(prompts)
 
             try:
                 print(f"\n  Request #{request_count}:")
