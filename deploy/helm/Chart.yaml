@@ -17,6 +17,11 @@ maintainers:
   - name: LiteLLM Team
 
 dependencies:
+  - name: redis
+    version: 18.19.4
+    repository: https://charts.bitnami.com/bitnami
+    condition: redis.enabled
+
   - name: pgvector
     version: 0.5.2
     repository: https://rh-ai-quickstart.github.io/ai-architecture-charts

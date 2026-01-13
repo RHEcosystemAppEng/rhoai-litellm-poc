@@ -49,6 +49,26 @@ litellm:
   apiKey: "sk-1234567890"       # API key for programmatic access
   salt: "sk-1234567890"         # Salt for hashing (required with database)
   config:
+    # Enable Redis caching for LiteLLM responses
+    litellm_settings:
+      cache: true
+      cache_params:
+        type: "redis"
+        # Redis host will be templated in configmap.yaml as {{ .Release.Name }}-redis-master
+        # For a release named "litellm", this becomes "litellm-redis-master"
+        port: 6379
+
+    general_settings:
+      # Cache TTL for user API keys (in seconds)
+      user_api_key_cache_ttl: 600
+
+      # Enable spend tracking in database
+      track_cost_callback: true
+
+      # Batch write threshold for spend logs (default: 100)
+      # Lower value = more real-time but more database writes
+      batch_write_at: 1  # Write spend logs immediately
+
     model_list:
       - model_name: llama3
         litellm_params:
@@ -189,3 +209,45 @@ llama-stack:
       url: http://litellm:4000/v1
       apiToken: master-key
       enabled: true
+
+# Redis cache for LiteLLM responses
+# Provides distributed caching across pod restarts and replicas
+redis:
+  enabled: true
+  architecture: standalone  # Use 'replication' for high availability
+
+  image:
+    # Use latest tag for broader compatibility
+    tag: latest
+
+  auth:
+    enabled: false  # Set true for production with password
+    # password: "your-redis-password"
+
+  # OpenShift compatibility settings
+  master:
+    # OpenShift-compatible security context (based on Portkey configuration)
+    podSecurityContext:
+      enabled: true
+      fsGroup: null  # Let OpenShift assign fsGroup from namespace range
+    containerSecurityContext:
+      enabled: true
+      runAsUser: null  # Let OpenShift assign UID from namespace range
+      runAsNonRoot: true
+      allowPrivilegeEscalation: false
+      capabilities:
+        drop:
+          - ALL
+      seccompProfile:
+        type: RuntimeDefault
+
+    persistence:
+      enabled: false  # Cache is ephemeral, no need for persistence
+
+    resources:
+      requests:
+        memory: 128Mi
+        cpu: 100m
+      limits:
+        memory: 256Mi
+        cpu: 200m

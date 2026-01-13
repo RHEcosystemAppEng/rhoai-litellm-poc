@@ -12,9 +12,10 @@ updates asynchronously and may not reflect real-time spend.
 """
 
 import re
-import requests
-import litellm
+import uuid
 
+import litellm
+import requests
 
 # Configuration - matching the existing demo setup
 BASE_URL = "https://litellm-hacohen-llmlite.apps.ai-dev02.kni.syseng.devcluster.openshift.com"
@@ -25,7 +26,7 @@ MODEL = "openai/llama-fp8"
 MAX_BUDGET = 0.001  # $0.001 USD
 
 # Cost per token (must match your LiteLLM config)
-INPUT_COST_PER_TOKEN = 0.0001   # $0.10 per 1K tokens
+INPUT_COST_PER_TOKEN = 0.0001  # $0.10 per 1K tokens
 OUTPUT_COST_PER_TOKEN = 0.0002  # $0.20 per 1K tokens
 
 
@@ -35,7 +36,7 @@ def create_budget_key(base_url: str, master_key: str, max_budget: float) -> dict
     headers = {"Authorization": f"Bearer {master_key}"}
     payload = {
         "max_budget": max_budget,
-        "key_alias": "budget-demo-key",
+        "key_alias": f"budget-demo-{uuid.uuid4().hex[:8]}",
     }
 
     response = requests.post(url, headers=headers, json=payload)
@@ -105,9 +106,20 @@ def main():
         print("\n[Step 2] Sending completion requests until budget is exhausted...")
         print("-" * 60)
 
+        p_index = 0
+
+        prompts = [
+            "Say 'hello' in one word.",
+            "What is the capital of France?",
+            "What is the capital of the UK?",
+            "What is the capital of the USA?",
+            "Who is the founder of Apple?",
+        ]
+
         while not budget_exceeded:
             request_count += 1
-            prompt = "Say 'hello' in one word."
+            prompt = prompts[p_index]  # "Say 'hello' in one word."
+            p_index = (p_index + 1) % len(prompts)
 
             try:
                 print(f"\n  Request #{request_count}:")
@@ -120,16 +132,22 @@ def main():
                 # Calculate and track spend from token usage
                 request_cost = calculate_cost(response)
                 cumulative_spend += request_cost
-                
+
                 # Show token usage
                 if response.usage:
-                    print(f"    Tokens: {response.usage.prompt_tokens} in / {response.usage.completion_tokens} out")
+                    print(
+                        f"    Tokens: {response.usage.prompt_tokens} in / {response.usage.completion_tokens} out"
+                    )
                 print(f"    Request cost: ${request_cost:.6f}")
                 print(f"    Cumulative spend: ${cumulative_spend:.6f} / ${MAX_BUDGET}")
 
             except Exception as e:
                 error_message = str(e)
-                if "Budget" in error_message or "budget" in error_message or "exceeded" in error_message.lower():
+                if (
+                    "Budget" in error_message
+                    or "budget" in error_message
+                    or "exceeded" in error_message.lower()
+                ):
                     budget_exceeded = True
                     # Extract actual cost from error message
                     final_cost = extract_cost_from_error(error_message)

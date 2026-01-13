@@ -1,9 +1,12 @@
 dependencies:
+- name: redis
+  repository: https://charts.bitnami.com/bitnami
+  version: 18.19.4
 - name: pgvector
   repository: https://rh-ai-quickstart.github.io/ai-architecture-charts
   version: 0.5.2
 - name: llama-stack
   repository: https://rh-ai-quickstart.github.io/ai-architecture-charts
   version: 0.6.4
-digest: sha256:a28f82e6c1d1bf49c6b3950000fafb7fb7c67439ff0e72ce1104ac09042f59c4
-generated: "2026-01-07T14:22:04.1662-05:00"
+digest: sha256:961dd413b84dd46162c55a1fe129b56139c417a275e02a4c5231603994b80f1f
+generated: "2026-01-12T12:27:24.016737+02:00"
