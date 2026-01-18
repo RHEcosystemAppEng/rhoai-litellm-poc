@@ -188,12 +188,6 @@ oc logs -l llm-d.ai/role=decode -n hacohen-llmd -f
 make status
 ```
 
-**SSL Certificate Errors:**
-```bash
-# Use -k flag for self-signed certificates
-curl -k -X POST https://your-route-url/v1/completions ...
-```
-
 ### Verification Commands
 
 ```bash
