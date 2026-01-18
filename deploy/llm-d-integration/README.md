@@ -5,7 +5,7 @@ This integration uses the existing [LLM-D repository](https://github.com/llm-d/l
 ## Features
 
 - 🚀 **Automated deployment** with comprehensive Makefile
-- 🌐 **External HTTPS endpoint** via OpenShift Routes
+- 🌐 **External HTTP endpoint** via OpenShift Routes (compatible with cross-cluster access)
 - 🧠 **Prefix caching** for improved inference performance
 - 🎯 **L40S GPU optimization** with proper node scheduling
 - 🔒 **Secure token management** via environment variables
@@ -68,7 +68,7 @@ That's it! The deployment will:
 - ✅ Install gateway dependencies
 - ✅ Deploy LLM-D infrastructure
 - ✅ Apply L40S GPU scheduling
-- ✅ Create external HTTPS route
+- ✅ Create external HTTP route (no SSL for cross-cluster compatibility)
 - ✅ Display your inference endpoint URL
 
 ## 🧪 Testing
@@ -89,7 +89,7 @@ bash test-inference.sh
 make route-url
 
 # Test via external endpoint (replace URL with yours)
-curl -k -X POST https://llm-d-inference-hacohen-llmd.apps.your-cluster.com/v1/completions \
+curl -X POST http://llm-d-inference-hacohen-llmd.apps.your-cluster.com/v1/completions \
   -H "Content-Type: application/json" \
   -d '{
     "model": "RedHatAI/DeepSeek-R1-Distill-Qwen-7B-quantized.w8a8",
