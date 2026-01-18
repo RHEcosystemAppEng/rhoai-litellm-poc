@@ -32,6 +32,5 @@ spec:
     name: llm-d-model-service
     weight: 100
   wildcardPolicy: None
-  tls:
-    termination: edge
-    insecureEdgeTerminationPolicy: Redirect
+  # Removed TLS to allow insecure HTTP connections from external clusters
+  # This avoids SSL certificate verification issues

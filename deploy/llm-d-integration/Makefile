@@ -104,10 +104,10 @@ install: ## Deploy LLM-D with RedHatAI model
 	@echo "🔗 External Inference Endpoint:"
 	@ROUTE_HOST=$$($(KUBE_CMD) get route llm-d-inference -n $(NAMESPACE) --no-headers -o custom-columns=HOST:.spec.host 2>/dev/null); \
 	if [ -n "$$ROUTE_HOST" ]; then \
-		echo "  🌐 https://$$ROUTE_HOST"; \
+		echo "  🌐 http://$$ROUTE_HOST"; \
 		echo ""; \
 		echo "📝 Test with curl:"; \
-		echo "  curl -k -X POST https://$$ROUTE_HOST/v1/completions \\"; \
+		echo "  curl -X POST http://$$ROUTE_HOST/v1/completions \\"; \
 		echo "    -H \"Content-Type: application/json\" \\"; \
 		echo "    -d '{\"model\": \"$(MODEL_NAME)\", \"prompt\": \"Hello!\", \"max_tokens\": 50}'"; \
 	else \
@@ -138,10 +138,10 @@ test: ## Test inference endpoint
 	@echo "Checking for external route..."
 	@ROUTE_HOST=$$($(KUBE_CMD) get route llm-d-inference -n $(NAMESPACE) --no-headers -o custom-columns=HOST:.spec.host 2>/dev/null); \
 	if [ -n "$$ROUTE_HOST" ]; then \
-		echo "🌐 Using external route: https://$$ROUTE_HOST"; \
+		echo "🌐 Using external route: http://$$ROUTE_HOST"; \
 		echo "Testing inference via external endpoint..."; \
 		echo ""; \
-		RESPONSE=$$(curl -k -s -X POST https://$$ROUTE_HOST/v1/completions \
+		RESPONSE=$$(curl -s -X POST http://$$ROUTE_HOST/v1/completions \
 			-H "Content-Type: application/json" \
 			-d '{"model": "$(MODEL_NAME)", "prompt": "What is the capital of France?", "max_tokens": 50}' 2>/dev/null); \
 		if [ -n "$$RESPONSE" ]; then \
@@ -248,7 +248,7 @@ create-route: ## Create external route for inference endpoint
 	@echo "🔗 Getting route URL..."
 	@sleep 2  # Wait for route to be processed
 	@$(KUBE_CMD) get route llm-d-inference -n $(NAMESPACE) --no-headers -o custom-columns=HOST:.spec.host 2>/dev/null | \
-		while read host; do echo "🌐 External URL: https://$$host"; done || \
+		while read host; do echo "🌐 External URL: http://$$host"; done || \
 		echo "⏳ Route still being provisioned. Run 'make route-url' in a moment."
 
 route-url: ## Display external route URL
@@ -256,10 +256,10 @@ route-url: ## Display external route URL
 	@echo "=========================="
 	@ROUTE_HOST=$$($(KUBE_CMD) get route llm-d-inference -n $(NAMESPACE) --no-headers -o custom-columns=HOST:.spec.host 2>/dev/null); \
 	if [ -n "$$ROUTE_HOST" ]; then \
-		echo "🔗 External URL: https://$$ROUTE_HOST"; \
+		echo "🔗 External URL: http://$$ROUTE_HOST"; \
 		echo ""; \
 		echo "📝 Test with curl:"; \
-		echo "  curl -X POST https://$$ROUTE_HOST/v1/completions \\"; \
+		echo "  curl -X POST http://$$ROUTE_HOST/v1/completions \\"; \
 		echo "    -H \"Content-Type: application/json\" \\"; \
 		echo "    -d '{"; \
 		echo "      \"model\": \"$(MODEL_NAME)\","; \
