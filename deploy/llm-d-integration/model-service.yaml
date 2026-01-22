@@ -1,0 +1,36 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: llm-d-model-service
+  namespace: hacohen-llmd
+  labels:
+    app: llm-d-model-service
+    component: inference
+spec:
+  ports:
+  - name: inference
+    port: 8200
+    protocol: TCP
+    targetPort: 8200
+  selector:
+    llm-d.ai/role: decode
+  type: ClusterIP
+---
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: llm-d-inference
+  namespace: hacohen-llmd
+  labels:
+    app: llm-d-inference
+    component: inference
+spec:
+  port:
+    targetPort: inference
+  to:
+    kind: Service
+    name: llm-d-model-service
+    weight: 100
+  wildcardPolicy: None
+  # Removed TLS to allow insecure HTTP connections from external clusters
+  # This avoids SSL certificate verification issues

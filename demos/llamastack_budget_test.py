@@ -25,7 +25,7 @@ from llama_stack_client import LlamaStackClient
 LITELLM_URL = "https://litellm-hacohen-llmlite.apps.ai-dev02.kni.syseng.devcluster.openshift.com"
 LLAMASTACK_URL = "https://llamastack-hacohen-llmlite.apps.ai-dev02.kni.syseng.devcluster.openshift.com"
 MASTER_KEY = "master-key"
-MODEL = "litellm-provider/llama-fp8"  # LlamaStack provider/model format
+MODEL = "litellm-provider/deepseek-r1-distill-qwen-7b" # "litellm-provider/llama-fp8"  # LlamaStack provider/model format
 
 # Budget configuration - set very low to quickly demonstrate exhaustion
 MAX_BUDGET = 0.001  # $0.001 USD
