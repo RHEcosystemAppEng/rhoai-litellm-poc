@@ -14,10 +14,11 @@ import asyncio
 import litellm
 from llama_stack_client import LlamaStackClient
 
-# Configuration
-LITELLM_BASE_URL = os.getenv("LITELLM_BASE_URL", "https://litellm-hacohen-llmlite.apps.ai-dev02.kni.syseng.devcluster.openshift.com")
-LITELLM_API_KEY = os.getenv("LITELLM_API_KEY", "master-key")
-LLAMASTACK_BASE_URL = os.getenv("LLAMASTACK_BASE_URL", "https://llamastack-hacohen-llmlite.apps.ai-dev02.kni.syseng.devcluster.openshift.com")
+# Configuration - import from centralized config
+from config import LITELLM_BASE_URL, LLAMASTACK_BASE_URL, LITELLM_API_KEY, print_config
+
+# Print configuration at startup
+print_config()
 
 # Test cases covering different safety categories
 TEST_CASES = [

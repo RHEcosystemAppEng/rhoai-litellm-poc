@@ -17,13 +17,25 @@ import uuid
 import litellm
 import requests
 
-# Configuration - matching the existing demo setup
-BASE_URL = "https://litellm-hacohen-llmlite.apps.ai-dev02.kni.syseng.devcluster.openshift.com"
-MASTER_KEY = "master-key"
+# Configuration - import from centralized config
+from config import LITELLM_BASE_URL, LITELLM_MASTER_KEY, get_demo_config, print_config
+
+# Use centralized configuration
+BASE_URL = LITELLM_BASE_URL
+MASTER_KEY = LITELLM_MASTER_KEY
 MODEL = "openai/llama-fp8"
 
-# Budget configuration - set very low to quickly demonstrate exhaustion
-MAX_BUDGET = 0.001  # $0.001 USD
+# Get budget demo configuration
+budget_config = get_demo_config("budget")
+MAX_BUDGET = budget_config["max_budget"]
+
+# Print configuration at startup
+print("Budget Management Demo Configuration:")
+print("=" * 50)
+print(f"LiteLLM URL: {BASE_URL}")
+print(f"Model: {MODEL}")
+print(f"Max Budget: ${MAX_BUDGET}")
+print("=" * 50)
 
 # Cost per token (must match your LiteLLM config)
 INPUT_COST_PER_TOKEN = 0.0001  # $0.10 per 1K tokens

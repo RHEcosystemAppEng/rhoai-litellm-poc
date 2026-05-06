@@ -80,7 +80,8 @@ litellm:
       - model_name: llama-fp8
         litellm_params:
           model: openai/llama-fp8
-          api_base: http://llama-fp8-predictor.hacohen-llmlite.svc.cluster.local:8080/v1
+          api_base: http://llama-fp8-predictor.litellm.svc.cluster.local:8080/v1  # Generic namespace
+          # Original: http://llama-fp8-predictor.hacohen-llmlite.svc.cluster.local:8080/v1
           api_key: "none"  # Add this - tells LiteLLM no auth needed for this backend
           input_cost_per_token: 0.00001   # $0.01 per 1K input tokens
           output_cost_per_token: 0.00002  # $0.02 per 1K output tokens
@@ -93,7 +94,8 @@ litellm:
       - model_name: deepseek-r1-distill-qwen-7b
         litellm_params:
           model: openai/RedHatAI/DeepSeek-R1-Distill-Qwen-7B-quantized.w8a8
-          api_base: http://llm-d-inference-hacohen-llmd.apps.ai-dev06.kni.syseng.devcluster.openshift.com/v1
+          api_base: http://llm-d-inference-service.llmd.apps.example.cluster.local/v1  # Generic cluster URL
+          # Original: http://llm-d-inference-hacohen-llmd.apps.ai-dev06.kni.syseng.devcluster.openshift.com/v1
           api_key: "none"
           input_cost_per_token: 0.00001   # $0.01 per 1K input tokens
           output_cost_per_token: 0.00002  # $0.02 per 1K output tokens

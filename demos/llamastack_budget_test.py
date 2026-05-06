@@ -21,11 +21,26 @@ import requests
 from llama_stack_client import LlamaStackClient
 
 
-# Configuration - matching the existing demo setup
-LITELLM_URL = "https://litellm-hacohen-llmlite.apps.ai-dev02.kni.syseng.devcluster.openshift.com"
-LLAMASTACK_URL = "https://llamastack-hacohen-llmlite.apps.ai-dev02.kni.syseng.devcluster.openshift.com"
-MASTER_KEY = "master-key"
-MODEL = "litellm-provider/deepseek-r1-distill-qwen-7b" # "litellm-provider/llama-fp8"  # LlamaStack provider/model format
+# Configuration - import from centralized config
+from config import LITELLM_BASE_URL, LLAMASTACK_BASE_URL, LITELLM_MASTER_KEY, DEFAULT_LLAMASTACK_MODEL, get_demo_config, print_config
+
+# Use centralized configuration
+LITELLM_URL = LITELLM_BASE_URL
+LLAMASTACK_URL = LLAMASTACK_BASE_URL
+MASTER_KEY = LITELLM_MASTER_KEY
+MODEL = DEFAULT_LLAMASTACK_MODEL  # Use configured LlamaStack model
+
+# Get budget demo configuration
+budget_config = get_demo_config("budget")
+
+# Print configuration at startup
+print("LlamaStack Budget Management Demo Configuration:")
+print("=" * 60)
+print(f"LiteLLM URL: {LITELLM_URL}")
+print(f"LlamaStack URL: {LLAMASTACK_URL}")
+print(f"Model: {MODEL}")
+print(f"Max Budget: ${budget_config['max_budget']}")
+print("=" * 60)
 
 # Budget configuration - set very low to quickly demonstrate exhaustion
 MAX_BUDGET = 0.001  # $0.001 USD
