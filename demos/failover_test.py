@@ -21,11 +21,25 @@ import signal
 from openai import OpenAI
 
 
-# Configuration
-BASE_URL = "https://litellm-hacohen-llmlite.apps.ai-dev02.kni.syseng.devcluster.openshift.com"
-API_KEY = "master-key"
-PRIMARY_MODEL = "llama-fp8"  # Use model_name for router fallback to work
+# Configuration - import from centralized config
+from config import LITELLM_BASE_URL, LITELLM_API_KEY, get_demo_config, print_config
+
+# Use centralized configuration
+BASE_URL = LITELLM_BASE_URL
+API_KEY = LITELLM_API_KEY
+
+# Get failover demo configuration
+failover_config = get_demo_config("failover")
+PRIMARY_MODEL = failover_config["primary_model"]
 REQUEST_INTERVAL = 3  # seconds between requests
+
+# Print configuration at startup
+print("Failover Demo Configuration:")
+print("=" * 50)
+print(f"LiteLLM URL: {BASE_URL}")
+print(f"Primary Model: {PRIMARY_MODEL}")
+print(f"Request Interval: {REQUEST_INTERVAL}s")
+print("=" * 50)
 
 # Track state
 running = True

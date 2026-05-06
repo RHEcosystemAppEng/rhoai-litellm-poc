@@ -42,14 +42,19 @@ Demonstrates content safety using LlamaGuard 3 (8B) for AI-based content moderat
 
 ## Prerequisites
 
-- Python 3.10+
-- Access to a running LiteLLM proxy server with llama-guard3 model
-- Required packages: `litellm`, `llama-stack-client`
+See **[Demo Setup Guide](DEMO_README.md)** for complete setup instructions including:
+- Python environment setup
+- LiteLLM platform with LlamaGuard model deployed
+- Environment configuration
 
-Install dependencies:
+**Quick install for this demo:**
 ```bash
-uv add litellm llama-stack-client
+pip install litellm llama-stack-client
 ```
+
+**Additional Requirements:**
+- LlamaGuard 3 model available in your LiteLLM deployment
+- Optional: LlamaStack server for advanced integration
 
 ## What it does
 

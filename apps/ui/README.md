@@ -2,7 +2,7 @@
 
 A simple Streamlit-based web UI for browsing models exposed by the LiteLLM proxy.
 
-> **Deployment:** This UI is deployed via the Helm chart in `../../litellm/helm/`. See [../../litellm/DEPLOYMENT.md](../../litellm/DEPLOYMENT.md) for instructions.
+> **Deployment:** This UI is deployed via the Helm chart in `../../litellm/helm/`. See [../../deploy/DEPLOYMENT.md](../../deploy/DEPLOYMENT.md) for instructions.
 
 ## Project Structure
 

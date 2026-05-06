@@ -7,7 +7,8 @@
 set -e
 
 # Configuration
-NAMESPACE="${1:-hacohen-llmlite}"
+NAMESPACE="${1:-litellm}"  # Generic namespace
+# Original default: hacohen-llmlite
 RELEASE_NAME="litellm"
 
 echo "============================================"

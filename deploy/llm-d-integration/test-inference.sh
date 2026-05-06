@@ -4,7 +4,8 @@
 
 set -euo pipefail
 
-NAMESPACE="${NAMESPACE:-hacohen-llmd}"
+NAMESPACE="${NAMESPACE:-llmd}"  # Generic namespace
+# Original default: hacohen-llmd
 MODEL="RedHatAI/DeepSeek-R1-Distill-Qwen-7B-quantized.w8a8"
 
 # Colors for output

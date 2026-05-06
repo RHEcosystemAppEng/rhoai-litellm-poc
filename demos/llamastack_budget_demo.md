@@ -4,6 +4,22 @@
 
 This document demonstrates how to implement budget enforcement when using LlamaStack with LiteLLM. Budget limits work through LlamaStack using the `X-LlamaStack-Provider-Data` header mechanism.
 
+## Prerequisites
+
+See **[Demo Setup Guide](DEMO_README.md)** for complete setup instructions including:
+- Python environment setup
+- LiteLLM platform deployment
+- LlamaStack server deployment
+
+**Quick install for this demo:**
+```bash
+pip install llama-stack-client requests
+```
+
+**Additional Requirements:**
+- LlamaStack server configured with LiteLLM backend
+- Admin access to create virtual API keys in LiteLLM
+
 ## Architecture Components
 
 ### LiteLLM

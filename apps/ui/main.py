@@ -30,7 +30,8 @@ st.markdown(
 # Get LlamaStack URL from environment variable or default
 LLAMASTACK_URL = os.getenv(
     "LLAMASTACK_URL",
-    "https://llamastack-hacohen-llmlite.apps.ai-dev02.kni.syseng.devcluster.openshift.com",
+    "https://llamastack-api-route.apps.example.cluster.local",  # Dummy cluster URL
+    # Original: "https://llamastack-hacohen-llmlite.apps.ai-dev02.kni.syseng.devcluster.openshift.com"
 )
 
 print(f"LLAMASTACK_URL: {LLAMASTACK_URL}")
@@ -298,7 +299,7 @@ if prompt := st.chat_input("Type your message here..."):
 if not st.session_state.messages:
     st.info("""
     👋 **Welcome to LlamaStack Chat!** To get started:
-    1. The app connects to LlamaStack server (default: https://llamastack-hacohen-llmlite.apps.ai-dev02.kni.syseng.devcluster.openshift.com)
+    1. The app connects to LlamaStack server (default: https://llamastack-api-route.apps.example.cluster.local)
     2. Click **🔄 Refresh Models** to load available models
     3. Select a model from the dropdown (e.g., `litellm-provider/llama3`)
     4. Start chatting!

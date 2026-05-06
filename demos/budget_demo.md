@@ -4,18 +4,15 @@ Demonstrates LiteLLM's budget management feature for controlling API spend.
 
 ## Prerequisites
 
-- Python 3.10+
-- Access to a running LiteLLM proxy server
-- Required packages: `litellm`, `requests`
+See **[Demo Setup Guide](DEMO_README.md)** for complete setup instructions including:
+- Python environment setup
+- Required packages installation  
+- LiteLLM platform access
+- Environment configuration
 
-Install dependencies:
+**Quick install for this demo:**
 ```bash
 pip install litellm requests
-```
-
-Or with uv:
-```bash
-uv add litellm requests
 ```
 
 ## What it does

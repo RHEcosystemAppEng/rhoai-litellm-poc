@@ -4,18 +4,21 @@ Demonstrates LiteLLM's automatic failover routing feature. When the primary mode
 
 ## Prerequisites
 
-- Python 3.10+
-- Access to a running LiteLLM proxy server with failover configured
-- Required packages: `openai`
+See **[Demo Setup Guide](DEMO_README.md)** for complete setup instructions including:
+- Python environment setup
+- LiteLLM platform deployment with multiple models
+- Environment configuration
 
-Install dependencies:
+**Quick install for this demo:**
 ```bash
 pip install openai
 ```
 
-## LiteLLM Configuration
+## Configuration
 
-Add `router_settings` with fallback configuration to your LiteLLM config (`values.yaml`):
+Add failover settings to your LiteLLM deployment. See **[Configuration Reference](../docs/CONFIGURATION.md#failover-configuration)** for complete examples.
+
+**Basic failover setup in `values.yaml`:**
 
 ```yaml
 litellm:

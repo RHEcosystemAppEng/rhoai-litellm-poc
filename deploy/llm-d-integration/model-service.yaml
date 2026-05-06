@@ -2,7 +2,8 @@ apiVersion: v1
 kind: Service
 metadata:
   name: llm-d-model-service
-  namespace: hacohen-llmd
+  namespace: llmd  # Generic namespace
+  # Original: hacohen-llmd
   labels:
     app: llm-d-model-service
     component: inference
@@ -20,7 +21,8 @@ apiVersion: route.openshift.io/v1
 kind: Route
 metadata:
   name: llm-d-inference
-  namespace: hacohen-llmd
+  namespace: llmd  # Generic namespace
+  # Original: hacohen-llmd
   labels:
     app: llm-d-inference
     component: inference
