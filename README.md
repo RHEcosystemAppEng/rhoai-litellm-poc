@@ -173,13 +173,48 @@ flowchart TB
 
 ---
 
+## Documentation Reading Guide
+
+For optimal experience with this repository, we recommend following this reading order:
+
+### For New Users (Start Here)
+1. **[README.md](README.md)** (this file) - Overview, architecture, and quick start
+2. **[Deployment Guide](deploy/DEPLOYMENT.md)** - Complete deployment instructions
+3. **[Usage Guide](USAGE_GUIDE.md)** - How to use the deployed application
+
+### By Use Case
+
+| **I want to...** | **Start with** | **Then read** |
+|-------------------|----------------|---------------|
+| **Deploy the platform** | [Deployment Guide](deploy/DEPLOYMENT.md) | [Helm Configuration](deploy/helm/README.md) |
+| **Try specific features** | [Demo Overview](demos/) | Individual demo guides |
+| **Integrate with RHOAI** | [LLM-D Integration](deploy/llm-d-integration/README.md) | [Usage Guide](USAGE_GUIDE.md) |
+| **Understand the code** | [README.md](README.md) | [Apps Documentation](apps/ui/README.md) |
+| **Troubleshoot issues** | [Troubleshooting Guide](TROUBLESHOOTING.md) | Component-specific docs |
+
+### Documentation Index
+
+| File | Purpose | Audience |
+|------|---------|----------|
+| [README.md](README.md) | Overview and architecture | Everyone |
+| [deploy/DEPLOYMENT.md](deploy/DEPLOYMENT.md) | Core deployment guide | Operators |
+| [deploy/helm/README.md](deploy/helm/README.md) | Helm chart details | DevOps |
+| [deploy/llm-d-integration/README.md](deploy/llm-d-integration/README.md) | RHOAI model serving | ML Engineers |
+| [USAGE_GUIDE.md](USAGE_GUIDE.md) | Application usage | End Users |
+| [apps/ui/README.md](apps/ui/README.md) | UI development | Developers |
+| [demos/](demos/) | Feature demonstrations | Learners |
+| [TROUBLESHOOTING.md](TROUBLESHOOTING.md) | Problem resolution | Support |
+| [docs/CONFIGURATION.md](docs/CONFIGURATION.md) | Configuration examples | Developers |
+
+---
+
 ## Getting Started
 
 ### Prerequisites
 
 To run LiteLLM with LlamaStack, you must have an LLM serving solution or hosted provider available for inference. Options include:
 
-- **Self-hosted**: Follow the [RHOAI Model Serving Tutorial](docs/RHOAI_model_serving.md) to serve an LLM using Red Hat OpenShift AI
+- **Self-hosted**: Follow the [LLM-D Integration Guide](deploy/llm-d-integration/README.md) to serve an LLM using Red Hat OpenShift AI
 - **Hosted providers**: Use services like Anthropic, OpenAI, Google, or AWS Bedrock
 - **Local development**: Run Ollama for local testing
 
@@ -254,7 +289,7 @@ seed:
 This creates two teams and two users with separate team budgets.
 
 > [!NOTE]
-> See the [LiteLLM Overview](litellm_overview.md) for detailed information on running and configuring the demo application.
+> See the [Usage Guide](USAGE_GUIDE.md) for detailed information on running and configuring the demo application.
 
 ---
 
